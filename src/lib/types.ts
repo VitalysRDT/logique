@@ -29,6 +29,7 @@ export interface Player {
 export interface RoomState {
   roomCode: string;
   hostId: string;
+  mode: "party" | "remote";
   status: "waiting" | "playing" | "reveal" | "leaderboard" | "finished";
   currentQuestionIndex: number;
   questionIds: number[];

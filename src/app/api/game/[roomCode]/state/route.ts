@@ -141,6 +141,7 @@ export async function GET(
     room: {
       roomCode: stateRaw.roomCode,
       hostId: stateRaw.hostId,
+      mode: (stateRaw.mode as string) || "party",
       status: stateRaw.status,
       currentQuestionIndex: Number(stateRaw.currentQuestionIndex),
       totalQuestions: Number(stateRaw.totalQuestions),

@@ -6,7 +6,7 @@ import { nanoid } from "nanoid";
 
 export async function POST(request: Request) {
   try {
-    const { hostName, avatar = "🎮" } = await request.json();
+    const { hostName, avatar = "🎮", mode = "party" } = await request.json();
 
     if (!hostName || typeof hostName !== "string" || hostName.trim().length < 1) {
       return NextResponse.json({ error: "Nom requis" }, { status: 400 });
@@ -44,6 +44,7 @@ export async function POST(request: Request) {
     pipeline.hset(`room:${roomCode}:state`, {
       roomCode,
       hostId,
+      mode: mode === "remote" ? "remote" : "party",
       status: "waiting",
       currentQuestionIndex: -1,
       questionIds: JSON.stringify(questionIds),
