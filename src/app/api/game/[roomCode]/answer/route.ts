@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { redis } from "@/lib/redis";
 import { sql } from "@/lib/db";
 import { calculateScore } from "@/lib/scoring";
+import { ensureParsed } from "@/lib/parse";
 
 export async function POST(
   request: Request,
@@ -20,7 +21,7 @@ export async function POST(
   if (!playerRaw) {
     return NextResponse.json({ error: "Joueur introuvable" }, { status: 404 });
   }
-  const player = typeof playerRaw === "string" ? JSON.parse(playerRaw) : playerRaw;
+  const player = ensureParsed<Record<string, unknown>>(playerRaw);
   if (player.token !== token) {
     return NextResponse.json({ error: "Token invalide" }, { status: 403 });
   }
@@ -80,7 +81,7 @@ async function resolveQuestion(
   qIndex: number,
   state: Record<string, unknown>
 ) {
-  const questionIds: number[] = JSON.parse(state.questionIds as string);
+  const questionIds: number[] = ensureParsed<number[]>(state.questionIds);
   const questionId = questionIds[qIndex];
 
   const qResult = await sql`
@@ -100,7 +101,7 @@ async function resolveQuestion(
   const pipeline = redis.pipeline();
 
   for (const [pId, answerStr] of Object.entries(answersRaw)) {
-    const answer = typeof answerStr === "string" ? JSON.parse(answerStr) : answerStr;
+    const answer = ensureParsed<{ optionId: number; answeredAt: number }>(answerStr);
     const isCorrect = answer.optionId === correctIndex;
     const elapsedMs = answer.answeredAt - questionStartedAt;
     const points = calculateScore(difficulty, isCorrect, elapsedMs, timeLimit);
@@ -112,9 +113,9 @@ async function resolveQuestion(
     // Mettre a jour le joueur (streak, score)
     const playerRaw = await redis.hget(`room:${roomCode}:players`, pId);
     if (playerRaw) {
-      const p = typeof playerRaw === "string" ? JSON.parse(playerRaw) : playerRaw;
-      const newStreak = isCorrect ? (p.streak || 0) + 1 : 0;
-      const newScore = (p.score || 0) + points;
+      const p = ensureParsed<Record<string, unknown>>(playerRaw);
+      const newStreak = isCorrect ? (Number(p.streak) || 0) + 1 : 0;
+      const newScore = (Number(p.score) || 0) + points;
       pipeline.hset(`room:${roomCode}:players`, {
         [pId]: JSON.stringify({ ...p, score: newScore, streak: newStreak }),
       });

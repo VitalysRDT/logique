@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { redis } from "@/lib/redis";
 import { sql } from "@/lib/db";
+import { ensureParsed } from "@/lib/parse";
 import type { Player, QuestionForClient } from "@/lib/types";
 
 export async function GET(
@@ -36,15 +37,15 @@ export async function GET(
   const players: Player[] = [];
   if (playersRaw) {
     for (const value of Object.values(playersRaw)) {
-      const p = typeof value === "string" ? JSON.parse(value) : value;
+      const p = ensureParsed<Record<string, unknown>>(value);
       players.push({
-        id: p.id,
-        name: p.name,
-        avatar: p.avatar,
-        score: p.score || 0,
-        streak: p.streak || 0,
-        connected: p.connected,
-        joinedAt: p.joinedAt,
+        id: p.id as string,
+        name: p.name as string,
+        avatar: p.avatar as string,
+        score: Number(p.score) || 0,
+        streak: Number(p.streak) || 0,
+        connected: p.connected as boolean,
+        joinedAt: p.joinedAt as number,
       });
     }
   }
@@ -66,7 +67,7 @@ export async function GET(
   const qIndex = Number(stateRaw.currentQuestionIndex);
 
   if ((status === "playing" || status === "reveal") && qIndex >= 0) {
-    const questionIds: number[] = JSON.parse(stateRaw.questionIds as string);
+    const questionIds: number[] = ensureParsed<number[]>(stateRaw.questionIds);
     const questionId = questionIds[qIndex];
 
     if (questionId) {
@@ -95,7 +96,7 @@ export async function GET(
           const playerResults = players.map((p) => {
             const answerStr = answersRaw?.[p.id];
             const answer = answerStr
-              ? typeof answerStr === "string" ? JSON.parse(answerStr) : answerStr
+              ? ensureParsed<Record<string, unknown>>(answerStr)
               : null;
             return {
               playerId: p.id,
