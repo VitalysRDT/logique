@@ -45,7 +45,7 @@ function PlayContent({ roomCode }: { roomCode: string }) {
   const deadline = state?.room?.questionDeadline || 0;
   const { remainingSeconds, isExpired } = useTimer(deadline);
 
-  const { speak, speakNow, stop } = useAudio();
+  const { speak, speakNow, prefetch, stop } = useAudio();
   const lastSpokenRef = useRef<string>("");
 
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -57,27 +57,30 @@ function PlayContent({ roomCode }: { roomCode: string }) {
   // Audio en mode remote (tous les joueurs entendent l'animateur)
   useEffect(() => {
     if (!state) return;
-    const { room, players, currentQuestion, revealData, scores } = state;
+    const { room, players, currentQuestion, revealData, scores, nextQuestion } = state;
     if (room.mode !== "remote") return;
 
     const key = `${room.status}-${room.currentQuestionIndex}`;
     if (key === lastSpokenRef.current) return;
     lastSpokenRef.current = key;
 
-    if (room.status === "playing" && currentQuestion) {
+    if (room.status === "intro") {
+      speakNow(rulesIntro(players.map((p) => p.name)));
+      if (nextQuestion) prefetch(questionIntro(1, room.totalQuestions, nextQuestion.difficulty, nextQuestion.text));
+    } else if (room.status === "playing" && currentQuestion) {
       const qNum = room.currentQuestionIndex + 1;
-      if (qNum === 1) {
-        speakNow(rulesIntro(players.map((p) => p.name)));
-        speak(questionIntro(qNum, room.totalQuestions, currentQuestion.difficulty, currentQuestion.text));
-      } else {
-        speakNow(questionIntro(qNum, room.totalQuestions, currentQuestion.difficulty, currentQuestion.text));
-      }
+      speakNow(questionIntro(qNum, room.totalQuestions, currentQuestion.difficulty, currentQuestion.text));
+      if (nextQuestion) prefetch(questionIntro(qNum + 1, room.totalQuestions, nextQuestion.difficulty, nextQuestion.text));
     } else if (room.status === "reveal" && revealData && currentQuestion) {
       speakNow(revealComment(currentQuestion.choices[revealData.correctIndex], revealData.explanation, revealData.playerResults));
+      if (nextQuestion) {
+        const nxt = room.currentQuestionIndex + 2;
+        prefetch(questionIntro(nxt, room.totalQuestions, nextQuestion.difficulty, nextQuestion.text));
+      }
     } else if (room.status === "finished" && scores.length > 0) {
       speakNow(gameOverComment(scores.map((s) => ({ playerName: players.find((p) => p.id === s.playerId)?.name || "?", score: s.score }))));
     }
-  }, [state, speak, speakNow, roomCode]);
+  }, [state, speak, speakNow, prefetch, roomCode]);
 
   useEffect(() => () => stop(), [stop]);
 
@@ -306,7 +309,7 @@ function RemoteView({
   players: { id: string; name: string; avatar: string; score: number }[];
   scores: { playerId: string; score: number }[];
   currentQuestion: { difficulty: number; text: string; choices: string[]; time_limit: number; category: string; type: string; id: number; svg_config: unknown } | null;
-  revealData: { correctIndex: number; explanation: string; playerResults: { playerId: string; playerName: string; chosenIndex: number | null; correct: boolean; pointsEarned: number; totalScore: number }[] } | null;
+  revealData: { correctIndex: number; explanation: string; playerResults: { playerId: string; playerName: string; chosenIndex: number | null; correct: boolean; pointsEarned: number; totalScore: number; previousRank: number; newRank: number }[] } | null;
   answeredPlayerIds: string[];
   myId: string | null;
   myPlayer: { id: string; name: string; avatar: string } | null;
@@ -317,8 +320,47 @@ function RemoteView({
   selectedAnswer: number | null;
   submitError: string;
   handleAnswer: (i: number) => void;
-  hostControl: (action: "start" | "next" | "end") => Promise<unknown>;
+  hostControl: (action: "start" | "begin" | "next" | "end") => Promise<unknown>;
 }) {
+  const [introStep, setIntroStep] = useState(0);
+
+  // Intro animation timer
+  useEffect(() => {
+    if (room.status !== "intro") return;
+    setIntroStep(0);
+    const timers = [
+      setTimeout(() => setIntroStep(1), 500),
+      setTimeout(() => setIntroStep(2), 3000),
+      setTimeout(() => setIntroStep(3), 6000),
+      setTimeout(() => setIntroStep(4), 12000),
+      setTimeout(() => setIntroStep(5), 22000),
+      setTimeout(() => setIntroStep(6), 25000),
+      setTimeout(() => { if (isHost) hostControl("begin"); }, 28000),
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, [room.status, isHost, hostControl]);
+
+  // INTRO remote
+  if (room.status === "intro") {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-violet-950 via-indigo-950 to-black" />
+        <div className="relative z-10 flex flex-col items-center text-center max-w-lg">
+          <h1 className={`text-5xl font-bold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent transition-all duration-1000 ${introStep >= 1 ? "opacity-100 scale-100" : "opacity-0 scale-50"}`}>LOGIQUE</h1>
+          <p className={`text-lg text-gray-300 mt-3 transition-all duration-700 ${introStep >= 2 ? "opacity-100" : "opacity-0"}`}>100 questions. Du trivial a l&apos;impossible.</p>
+          <div className={`flex flex-wrap gap-2 justify-center mt-6 transition-all duration-700 ${introStep >= 3 ? "opacity-100" : "opacity-0"}`}>
+            {players.map((p, i) => (<div key={p.id} className="px-4 py-2 rounded-xl bg-white/10 border border-white/20 font-bold animate-slide-up" style={{ animationDelay: `${i * 200}ms` }}>{p.avatar} {p.name}</div>))}
+          </div>
+          <div className={`mt-6 space-y-2 w-full transition-all duration-700 ${introStep >= 4 ? "opacity-100" : "opacity-0"}`}>
+            {["⚡ Repondez vite", "📈 Niv.1=100pts → Niv.10=1000pts", "🏎️ Bonus vitesse", "❌ Erreur = 0 pts"].map((r, i) => (
+              <div key={i} className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-gray-300 animate-slide-up" style={{ animationDelay: `${i * 300}ms` }}>{r}</div>
+            ))}
+          </div>
+          {introStep >= 5 && <p className={`mt-8 text-5xl font-mono font-bold ${introStep >= 6 ? "text-green-400" : "text-yellow-400"} animate-pulse`}>{introStep >= 6 ? "C'est parti !" : "3... 2... 1..."}</p>}
+        </div>
+      </div>
+    );
+  }
 
   // LOBBY remote : afficher le code + joueurs + host start
   if (room.status === "waiting") {
@@ -457,13 +499,28 @@ function RemoteView({
             <p className="text-gray-300 leading-relaxed">{revealData.explanation}</p>
           </div>
 
-          {/* Scores rapides */}
-          <div className="flex flex-wrap gap-2 justify-center">
-            {revealData.playerResults.map((pr) => (
-              <div key={pr.playerId} className={`px-3 py-1.5 rounded-lg text-sm ${pr.correct ? "bg-green-500/20 text-green-400" : "bg-red-500/10 text-red-400"}`}>
-                {pr.playerName} {pr.correct ? "✓" : "✗"}
-              </div>
-            ))}
+          {/* Scoreboard anime */}
+          <div className="w-full space-y-2">
+            <h3 className="text-sm font-bold text-gray-400 text-center mb-2">Classement</h3>
+            {scores.map((s, i) => {
+              const p = players.find((pl) => pl.id === s.playerId);
+              const result = revealData.playerResults.find((r) => r.playerId === s.playerId);
+              const rankChange = result ? result.previousRank - result.newRank : 0;
+              const maxScore = Math.max(...scores.map((x) => x.score), 1);
+              return (
+                <div key={s.playerId} className={`flex items-center gap-2 p-2 rounded-lg ${s.playerId === myId ? "bg-violet-500/15 border border-violet-500/30" : "bg-white/5"}`}>
+                  <span className="w-6 text-center text-sm">{i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}`}</span>
+                  <span className="flex-1 text-sm font-bold">{p?.name}</span>
+                  {result && result.pointsEarned > 0 && <span className="text-green-400 text-xs font-bold">+{result.pointsEarned}</span>}
+                  {rankChange > 0 && <span className="text-green-400 text-xs">↑{rankChange}</span>}
+                  {rankChange < 0 && <span className="text-red-400 text-xs">↓{Math.abs(rankChange)}</span>}
+                  <span className="text-xs font-mono text-gray-400 w-12 text-right">{s.score}</span>
+                  <div className="w-16 h-2 bg-white/5 rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${i === 0 ? "bg-yellow-500" : i === 1 ? "bg-gray-400" : i === 2 ? "bg-orange-500" : "bg-violet-500"}`} style={{ width: `${(s.score / maxScore) * 100}%` }} />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 

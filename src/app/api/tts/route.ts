@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 const CARTESIA_API_KEY = process.env.CARTESIA_API_KEY;
-const VOICE_ID = "79f8b5fb-2cc8-479a-80df-29f7a7cf1a3e"; // Theo - Modern Narrator
+const VOICE_ID = "a167e0f3-df7e-4d52-a9c3-f949145efdab"; // Blake - Energetic male ("Benoit")
 
 export async function POST(request: Request) {
   try {
@@ -11,8 +11,8 @@ export async function POST(request: Request) {
 
     const { text, speed, emotion } = await request.json();
 
-    if (!text || typeof text !== "string" || text.length > 1000) {
-      return NextResponse.json({ error: "Texte invalide (max 1000 car)" }, { status: 400 });
+    if (!text || typeof text !== "string" || text.length > 2000) {
+      return NextResponse.json({ error: "Texte invalide (max 2000 car)" }, { status: 400 });
     }
 
     const res = await fetch("https://api.cartesia.ai/tts/bytes", {
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model_id: "sonic-2",
+        model_id: "sonic-turbo",
         transcript: text,
         voice: { mode: "id", id: VOICE_ID },
         output_format: {
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
         },
         language: "fr",
         generation_config: {
-          speed: speed || 1.0,
+          speed: speed || 1.05,
           emotion: emotion || undefined,
         },
       }),

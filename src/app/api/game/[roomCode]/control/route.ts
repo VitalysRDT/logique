@@ -30,6 +30,8 @@ export async function POST(
     switch (action) {
       case "start":
         return await handleStart(roomCode, state);
+      case "begin":
+        return await handleBegin(roomCode, state);
       case "next":
         return await handleNext(roomCode, state);
       case "end":
@@ -49,6 +51,18 @@ export async function POST(
 async function handleStart(roomCode: string, state: Record<string, unknown>) {
   if (state.status !== "waiting") {
     return NextResponse.json({ error: "Partie deja commencee" }, { status: 409 });
+  }
+
+  // Passer en phase intro (animation + regles)
+  await redis.hset(`room:${roomCode}:state`, { status: "intro" });
+  await redis.incr(`room:${roomCode}:version`);
+
+  return NextResponse.json({ status: "intro" });
+}
+
+async function handleBegin(roomCode: string, state: Record<string, unknown>) {
+  if (state.status !== "intro") {
+    return NextResponse.json({ error: "Pas en phase intro" }, { status: 409 });
   }
 
   return startNextQuestion(roomCode, state, 0);
@@ -125,9 +139,21 @@ async function resolveCurrentQuestion(
   const timeLimit = (qResult[0].time_limit as number) * 1000;
   const questionStartedAt = Number(state.questionStartedAt);
 
-  const answersRaw = await redis.hgetall(`room:${roomCode}:answers:${qIndex}`);
+  // Sauvegarder les scores AVANT resolution pour calculer les changements de rang
+  const prevScoresRaw = await redis.zrange(`room:${roomCode}:scores`, 0, -1, { withScores: true, rev: true });
+  const prevRanks: Record<string, number> = {};
+  if (prevScoresRaw && Array.isArray(prevScoresRaw)) {
+    let rank = 1;
+    for (let i = 0; i < prevScoresRaw.length; i += 2) {
+      prevRanks[prevScoresRaw[i] as string] = rank++;
+    }
+  }
 
+  const answersRaw = await redis.hgetall(`room:${roomCode}:answers:${qIndex}`);
   const pipeline = redis.pipeline();
+
+  // Calculer les points et stocker pour le state
+  const pointsMap: Record<string, number> = {};
 
   if (answersRaw) {
     for (const [pId, answerStr] of Object.entries(answersRaw)) {
@@ -135,6 +161,7 @@ async function resolveCurrentQuestion(
       const isCorrect = answer.optionId === correctIndex;
       const elapsedMs = answer.answeredAt - questionStartedAt;
       const points = calculateScore(difficulty, isCorrect, elapsedMs, timeLimit);
+      pointsMap[pId] = points;
 
       if (points > 0) {
         pipeline.zincrby(`room:${roomCode}:scores`, points, pId);
@@ -151,6 +178,10 @@ async function resolveCurrentQuestion(
       }
     }
   }
+
+  // Stocker les prevRanks et pointsMap dans Redis pour que le state route puisse les lire
+  pipeline.set(`room:${roomCode}:prevRanks`, JSON.stringify(prevRanks), { ex: 300 });
+  pipeline.set(`room:${roomCode}:pointsMap`, JSON.stringify(pointsMap), { ex: 300 });
 
   pipeline.hset(`room:${roomCode}:state`, { status: "reveal" });
   pipeline.incr(`room:${roomCode}:version`);

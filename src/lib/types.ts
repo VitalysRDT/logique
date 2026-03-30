@@ -30,7 +30,7 @@ export interface RoomState {
   roomCode: string;
   hostId: string;
   mode: "party" | "remote";
-  status: "waiting" | "playing" | "reveal" | "leaderboard" | "finished";
+  status: "waiting" | "intro" | "playing" | "reveal" | "leaderboard" | "finished";
   currentQuestionIndex: number;
   questionIds: number[];
   totalQuestions: number;
@@ -46,6 +46,7 @@ export interface GameState {
   players: Player[];
   scores: { playerId: string; score: number }[];
   currentQuestion?: QuestionForClient;
+  nextQuestion?: QuestionForClient;
   revealData?: RevealData;
   answeredPlayerIds?: string[];
 }
@@ -74,6 +75,8 @@ export interface PlayerResult {
   correct: boolean;
   pointsEarned: number;
   totalScore: number;
+  previousRank: number;
+  newRank: number;
 }
 
 export interface PlayerAnswer {

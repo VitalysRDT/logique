@@ -35,7 +35,7 @@ export function useGameActions(roomCode: string) {
   );
 
   const hostControl = useCallback(
-    async (action: "start" | "next" | "end") => {
+    async (action: "start" | "begin" | "next" | "end") => {
       const { playerId, token } = getCredentials();
       const res = await fetch(`/api/game/${roomCode}/control`, {
         method: "POST",

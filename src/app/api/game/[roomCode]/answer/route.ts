@@ -94,23 +94,33 @@ async function resolveQuestion(
   const timeLimit = (qResult[0].time_limit as number) * 1000;
   const questionStartedAt = Number(state.questionStartedAt);
 
-  // Lire toutes les reponses
+  // Sauvegarder les rangs AVANT pour les animations
+  const prevScoresRaw = await redis.zrange(`room:${roomCode}:scores`, 0, -1, { withScores: true, rev: true });
+  const prevRanks: Record<string, number> = {};
+  if (prevScoresRaw && Array.isArray(prevScoresRaw)) {
+    let rank = 1;
+    for (let i = 0; i < prevScoresRaw.length; i += 2) {
+      prevRanks[prevScoresRaw[i] as string] = rank++;
+    }
+  }
+
   const answersRaw = await redis.hgetall(`room:${roomCode}:answers:${qIndex}`);
   if (!answersRaw) return;
 
   const pipeline = redis.pipeline();
+  const pointsMap: Record<string, number> = {};
 
   for (const [pId, answerStr] of Object.entries(answersRaw)) {
     const answer = ensureParsed<{ optionId: number; answeredAt: number }>(answerStr);
     const isCorrect = answer.optionId === correctIndex;
     const elapsedMs = answer.answeredAt - questionStartedAt;
     const points = calculateScore(difficulty, isCorrect, elapsedMs, timeLimit);
+    pointsMap[pId] = points;
 
     if (points > 0) {
       pipeline.zincrby(`room:${roomCode}:scores`, points, pId);
     }
 
-    // Mettre a jour le joueur (streak, score)
     const playerRaw = await redis.hget(`room:${roomCode}:players`, pId);
     if (playerRaw) {
       const p = ensureParsed<Record<string, unknown>>(playerRaw);
@@ -122,7 +132,8 @@ async function resolveQuestion(
     }
   }
 
-  // Passer en mode reveal
+  pipeline.set(`room:${roomCode}:prevRanks`, JSON.stringify(prevRanks), { ex: 300 });
+  pipeline.set(`room:${roomCode}:pointsMap`, JSON.stringify(pointsMap), { ex: 300 });
   pipeline.hset(`room:${roomCode}:state`, { status: "reveal" });
   pipeline.incr(`room:${roomCode}:version`);
 
