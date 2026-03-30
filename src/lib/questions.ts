@@ -59,7 +59,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 1, category: "lateral", type: "text", time_limit: 15,
+    difficulty: 1, category: "lateral", type: "text", time_limit: 20,
     text: "Un pere et son fils ont ensemble 36 ans. Le pere a 30 ans de plus que le fils. Quel age a le fils ?",
     choices: ["6 ans", "3 ans", "5 ans", "8 ans"],
     correct_index: 1,
@@ -141,7 +141,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 2, category: "math-logic", type: "text", time_limit: 15,
+    difficulty: 2, category: "math-logic", type: "text", time_limit: 25,
     text: "2 + 2 = poisson. 3 + 3 = huit. 7 + 7 = triangle. 8 + 8 = infini. Que vaut 5 + 5 ?",
     choices: ["10", "Dix", "Oeuf", "Cinq"],
     correct_index: 2,
@@ -183,7 +183,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 3, category: "math-logic", type: "text", time_limit: 15,
+    difficulty: 3, category: "math-logic", type: "text", time_limit: 20,
     text: "Si 3 chats attrapent 3 souris en 3 minutes, combien faut-il de chats pour attraper 100 souris en 100 minutes ?",
     choices: ["100 chats", "3 chats", "33 chats", "1 chat"],
     correct_index: 1,
@@ -223,7 +223,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 3, category: "math-logic", type: "text", time_limit: 15,
+    difficulty: 3, category: "math-logic", type: "text", time_limit: 20,
     text: "Un escargot grimpe un mur de 10m. Chaque jour il monte de 3m, chaque nuit il glisse de 2m. En combien de jours atteint-il le sommet ?",
     choices: ["10 jours", "8 jours", "7 jours", "5 jours"],
     correct_index: 1,
@@ -239,7 +239,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: { renderer: "GridLogic", params: { size: 3, shapes: [["circle-red","square-blue","triangle-green"],["square-green","triangle-red","circle-blue"],["triangle-blue",null,null]], missing: [2,1] } },
   },
   {
-    difficulty: 3, category: "deduction", type: "text", time_limit: 15,
+    difficulty: 3, category: "deduction", type: "text", time_limit: 20,
     text: "Il y a 5 maisons de couleurs differentes. L'anglais vit dans la maison rouge. L'espagnol a un chien. Le cafe est bu dans la maison verte. Qui boit du the ?",
     choices: ["L'anglais", "L'espagnol", "Le norvegien", "Pas assez d'info"],
     correct_index: 3,
@@ -257,7 +257,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 4, category: "deduction", type: "text", time_limit: 20,
+    difficulty: 4, category: "deduction", type: "text", time_limit: 30,
     text: "Alice dit : 'Bob ment'. Bob dit : 'Charlie ment'. Charlie dit : 'Alice et Bob mentent'. Si exactement un des trois dit la verite, qui ?",
     choices: ["Alice", "Bob", "Charlie", "Impossible a determiner"],
     correct_index: 1,
@@ -289,7 +289,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 4, category: "lateral", type: "text", time_limit: 20,
+    difficulty: 4, category: "lateral", type: "text", time_limit: 25,
     text: "Un homme regarde un portrait et dit : 'Je n'ai ni frere ni soeur, mais le pere de cet homme est le fils de mon pere.' Qui est sur le portrait ?",
     choices: ["Lui-meme", "Son pere", "Son fils", "Son grand-pere"],
     correct_index: 2,
@@ -297,7 +297,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 4, category: "sequence", type: "text", time_limit: 20,
+    difficulty: 4, category: "sequence", type: "text", time_limit: 25,
     text: "61, 52, 63, 94, 46, ?",
     choices: ["18", "28", "38", "57"],
     correct_index: 0,
@@ -331,7 +331,7 @@ export const questions: Omit<Question, "id">[] = [
 
   // ===== DIFFICULTE 5 — MOYEN (20s) =====
   {
-    difficulty: 5, category: "probability", type: "text", time_limit: 20,
+    difficulty: 5, category: "probability", type: "text", time_limit: 30,
     text: "Le probleme de Monty Hall : 3 portes, 1 voiture, 2 chevres. Vous choisissez une porte. Le presentateur ouvre une autre porte (avec une chevre). Devez-vous changer ?",
     choices: ["Oui, 2/3 de chances", "Non, 1/2 de chances", "Ca ne change rien", "Oui, 3/4 de chances"],
     correct_index: 0,
@@ -347,7 +347,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 5, category: "math-logic", type: "text", time_limit: 20,
+    difficulty: 5, category: "math-logic", type: "text", time_limit: 30,
     text: "Vous avez 12 boules identiques, l'une est plus lourde. Avec une balance a plateaux, quel est le minimum de pesees pour la trouver ?",
     choices: ["2", "3", "4", "6"],
     correct_index: 1,
@@ -355,7 +355,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 5, category: "sequence", type: "text", time_limit: 20,
+    difficulty: 5, category: "sequence", type: "text", time_limit: 30,
     text: "Quelle est la suite : 1, 11, 21, 1211, 111221, ?",
     choices: ["312211", "122211", "212221", "131221"],
     correct_index: 0,
@@ -363,7 +363,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 5, category: "lateral", type: "text", time_limit: 20,
+    difficulty: 5, category: "lateral", type: "text", time_limit: 30,
     text: "Un prisonnier doit choisir entre 2 portes. Devant chaque porte, un gardien. L'un ment toujours, l'autre dit toujours vrai. Il peut poser UNE question a UN gardien. Que demande-t-il ?",
     choices: ["'Quelle porte mene a la liberte ?'", "'Es-tu le menteur ?'", "'Que dirait l'autre gardien si je lui demandais quelle porte mene a la liberte ?'", "'Quelle porte choisirais-tu ?'"],
     correct_index: 2,
@@ -371,7 +371,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 5, category: "deduction", type: "text", time_limit: 20,
+    difficulty: 5, category: "deduction", type: "text", time_limit: 35,
     text: "5 pirates se partagent 100 pieces d'or. Le plus ancien propose un partage, vote a la majorite (egalite = accepte). S'il est rejete, il meurt et le suivant propose. Que propose le pirate 1 ?",
     choices: ["98 pour lui, 0, 1, 0, 1", "20 pour chacun", "100 pour lui", "96 pour lui, 0, 1, 0, 3"],
     correct_index: 0,
@@ -403,7 +403,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 5, category: "deduction", type: "text", time_limit: 20,
+    difficulty: 5, category: "deduction", type: "text", time_limit: 25,
     text: "3 interrupteurs dans une piece, 1 ampoule dans une autre (invisible). Vous pouvez aller voir l'ampoule UNE seule fois. Comment trouver quel interrupteur controle l'ampoule ?",
     choices: ["Allumer les 3 et voir", "Allumer le 1, attendre, eteindre, allumer le 2, aller voir", "Impossible", "Allumer et eteindre rapidement"],
     correct_index: 1,
@@ -421,7 +421,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 6, category: "deduction", type: "text", time_limit: 25,
+    difficulty: 6, category: "deduction", type: "text", time_limit: 30,
     text: "100 casiers fermes, 100 etudiants. L'etudiant 1 ouvre tout. L'etudiant 2 change chaque 2e casier. L'etudiant 3 chaque 3e... Quels casiers sont ouverts a la fin ?",
     choices: ["Les nombres premiers", "Les carres parfaits", "Les nombres pairs", "Aucun"],
     correct_index: 1,
@@ -453,7 +453,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 6, category: "deduction", type: "text", time_limit: 25,
+    difficulty: 6, category: "deduction", type: "text", time_limit: 30,
     text: "Trois boites : une avec des pommes, une avec des oranges, une mixte. Chaque etiquette est FAUSSE. Vous tirez un fruit de la boite 'Mixte'. C'est une pomme. Que contient chaque boite ?",
     choices: ["Mixte=Pommes, Pommes=Oranges, Oranges=Mixte", "Mixte=Pommes, Pommes=Mixte, Oranges=Oranges", "On ne peut pas savoir", "Mixte=Oranges, Pommes=Mixte, Oranges=Pommes"],
     correct_index: 0,
@@ -461,7 +461,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 6, category: "math-logic", type: "text", time_limit: 25,
+    difficulty: 6, category: "math-logic", type: "text", time_limit: 40,
     text: "Trouvez le chiffre manquant : 8809=6, 7111=0, 2172=0, 6666=4, 1111=0, 3213=0, 7662=2, 9313=1, 0000=4, 2222=0, 3333=0, 5555=0, 8193=3, 8096=5, 7777=0, 9999=4, 7756=1, 6855=3, 9881=5, 5531=0. 2581=?",
     choices: ["2", "3", "4", "5"],
     correct_index: 2,
@@ -511,7 +511,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 7, category: "math-logic", type: "text", time_limit: 25,
+    difficulty: 7, category: "math-logic", type: "text", time_limit: 30,
     text: "Deux cordes mettent chacune exactement 1h a bruler (mais pas uniformement). Comment mesurer exactement 45 minutes ?",
     choices: ["Allumer une corde et attendre 3/4", "Allumer les deux bouts d'une corde + un bout de l'autre", "Impossible", "Couper une corde en 4"],
     correct_index: 1,
@@ -543,7 +543,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 7, category: "math-logic", type: "text", time_limit: 25,
+    difficulty: 7, category: "math-logic", type: "text", time_limit: 35,
     text: "Vous avez une jarre de 3L et une de 5L. Comment mesurer exactement 4L ?",
     choices: ["Remplir 5L, vider 3L dedans, garder 2L, remplir 3L, ajouter les 2L", "Remplir 5L, vider dans 3L (reste 2 dans 5L), vider 3L, verser 2L dans 3L, remplir 5L, verser dans 3L", "Impossible", "Remplir les deux et soustraire"],
     correct_index: 1,
@@ -551,7 +551,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 7, category: "deduction", type: "text", time_limit: 25,
+    difficulty: 7, category: "deduction", type: "text", time_limit: 35,
     text: "Les yeux bleus : sur une ile, 100 personnes aux yeux bleus et d'autres aux yeux marrons. Personne ne connait sa propre couleur. Un oracle dit : 'Il y a au moins une personne aux yeux bleus.' Apres combien de jours les yeux bleus partent ?",
     choices: ["1 jour", "100 jours", "50 jours", "Jamais"],
     correct_index: 1,
@@ -567,7 +567,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: { renderer: "PatternSequence", params: { shapes: ["triangle-0", "triangle-45-dot", "triangle-90-dot-dot", "?"], rotationStep: 45, addElement: true, answer: 1 } },
   },
   {
-    difficulty: 7, category: "probability", type: "text", time_limit: 25,
+    difficulty: 7, category: "probability", type: "text", time_limit: 30,
     text: "100 passagers montent dans un avion de 100 places. Le premier a perdu son billet et s'assied au hasard. Les suivants prennent leur place si libre, sinon une place au hasard. Quelle est la probabilite que le dernier passager ait sa place ?",
     choices: ["1/100", "1/2", "99/100", "0"],
     correct_index: 1,
@@ -577,7 +577,7 @@ export const questions: Omit<Question, "id">[] = [
 
   // ===== DIFFICULTE 8 — TRES DIFFICILE (30s) =====
   {
-    difficulty: 8, category: "math-logic", type: "text", time_limit: 30,
+    difficulty: 8, category: "math-logic", type: "text", time_limit: 40,
     text: "Vous avez 25 chevaux et pouvez faire des courses de 5. Sans chronometre, quel est le minimum de courses pour trouver les 3 plus rapides ?",
     choices: ["5", "6", "7", "8"],
     correct_index: 2,
@@ -585,7 +585,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 8, category: "deduction", type: "text", time_limit: 30,
+    difficulty: 8, category: "deduction", type: "text", time_limit: 40,
     text: "Alice, Bob et Charlie ont des nombres sur le front (entiers positifs, l'un est la somme des deux autres). Chacun voit les deux autres. Alice(20), Bob(30) voient les nombres des autres. Tour 1 : tous disent 'je ne sais pas'. Tour 2 : tous disent 'je ne sais pas'. Tour 3 : quelqu'un sait. Quel est le nombre de Charlie ?",
     choices: ["10", "50", "20", "30"],
     correct_index: 0,
@@ -617,7 +617,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 8, category: "deduction", type: "text", time_limit: 30,
+    difficulty: 8, category: "deduction", type: "text", time_limit: 35,
     text: "Le probleme des 100 prisonniers : 100 tiroirs numerotes, chacun contient un numero unique. Chaque prisonnier peut ouvrir 50 tiroirs. Ils sont liberes si TOUS trouvent leur numero. Quelle est la meilleure strategie ?",
     choices: ["Chacun ouvre 50 tiroirs au hasard (~0%)", "Suivre les cycles (chacun commence par son numero)", "Le premier memorise et communique", "Impossible"],
     correct_index: 1,
@@ -675,7 +675,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 9, category: "probability", type: "text", time_limit: 30,
+    difficulty: 9, category: "probability", type: "text", time_limit: 35,
     text: "Le probleme de la secretaire : vous interviewez 100 candidats sequentiellement. Vous devez embaucher ou rejeter immediatement. Quelle est la strategie optimale ?",
     choices: ["Rejeter les 37 premiers, puis prendre le prochain meilleur", "Prendre le premier excellent", "Rejeter les 50 premiers", "Prendre le dernier"],
     correct_index: 0,
@@ -699,7 +699,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 9, category: "deduction", type: "text", time_limit: 30,
+    difficulty: 9, category: "deduction", type: "text", time_limit: 40,
     text: "A et B connaissent chacun un nombre. A dit : 'Je ne connais pas ton nombre'. B dit : 'Je ne connais pas ton nombre'. A dit : 'Je connais ton nombre'. Si la somme est 4 et les nombres sont des entiers positifs differents, quels sont les nombres ?",
     choices: ["1 et 3", "2 et 2", "A=1, B=3", "A=3, B=1"],
     correct_index: 3,
@@ -707,7 +707,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 9, category: "lateral", type: "text", time_limit: 30,
+    difficulty: 9, category: "lateral", type: "text", time_limit: 40,
     text: "Vous devez traverser un pont en 17 minutes avec 3 amis. Il fait nuit, vous avez une lampe. Le pont supporte 2 personnes max. Temps individuels : 1min, 2min, 5min, 10min. Comment faire ?",
     choices: ["1+10, 1 revient, 1+5, 1 revient, 1+2 = 19min", "1+2, 1 revient, 5+10, 2 revient, 1+2 = 17min", "Impossible en 17min", "1+2, 2 revient, 5+10, 1 revient, 1+2 = 19min"],
     correct_index: 1,
@@ -715,7 +715,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 9, category: "math-logic", type: "text", time_limit: 30,
+    difficulty: 9, category: "math-logic", type: "text", time_limit: 35,
     text: "Combien de zeros a la fin de 100! (factorielle de 100) ?",
     choices: ["10", "20", "24", "25"],
     correct_index: 2,
@@ -731,7 +731,7 @@ export const questions: Omit<Question, "id">[] = [
     svg_config: null,
   },
   {
-    difficulty: 9, category: "deduction", type: "text", time_limit: 30,
+    difficulty: 9, category: "deduction", type: "text", time_limit: 45,
     text: "Sum and Product puzzle : X et Y sont deux entiers entre 2 et 99. S connait S=X+Y, P connait P=X*Y. S dit : 'P ne peut pas connaitre X et Y'. P dit : 'Maintenant je connais X et Y'. S dit : 'Maintenant moi aussi'. X et Y ?",
     choices: ["4 et 13", "3 et 11", "2 et 6", "4 et 7"],
     correct_index: 0,
