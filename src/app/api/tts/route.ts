@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 const CARTESIA_API_KEY = process.env.CARTESIA_API_KEY;
-const VOICE_ID = "a167e0f3-df7e-4d52-a9c3-f949145efdab"; // Blake - Energetic male ("Benoit")
+const VOICE_ID = "5def377d-908b-4540-8bd7-3c968fcae351"; // Benoît - Methodical Moderator (voix FR native)
 
 export async function POST(request: Request) {
   try {
