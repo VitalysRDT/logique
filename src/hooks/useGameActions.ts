@@ -47,5 +47,18 @@ export function useGameActions(roomCode: string) {
     [roomCode, getCredentials]
   );
 
-  return { submitAnswer, hostControl, getCredentials };
+  const markReady = useCallback(
+    async () => {
+      const { playerId, token } = getCredentials();
+      const res = await fetch(`/api/game/${roomCode}/ready`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId, token }),
+      });
+      return safeJson(res);
+    },
+    [roomCode, getCredentials]
+  );
+
+  return { submitAnswer, hostControl, markReady, getCredentials };
 }

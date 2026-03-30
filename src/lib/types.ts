@@ -49,6 +49,7 @@ export interface GameState {
   nextQuestion?: QuestionForClient;
   revealData?: RevealData;
   answeredPlayerIds?: string[];
+  readyPlayerIds?: string[];
 }
 
 export interface QuestionForClient {

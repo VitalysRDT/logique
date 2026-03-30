@@ -266,9 +266,7 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
             );
           })}
         </div>
-        {isHost && isExpired && (
-          <button onClick={() => hostControl("next")} className="mt-4 mx-auto px-8 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 font-bold transition">Voir la reponse</button>
-        )}
+        {/* Auto-resolve : le serveur detecte le timer expire et passe en reveal automatiquement */}
       </div>
     );
   }
@@ -338,9 +336,19 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
             </div>
           </div>
         </div>
-        {isHost && (
-          <button onClick={() => hostControl("next")} className="mt-6 mx-auto px-12 py-4 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-xl font-bold hover:from-violet-500 hover:to-indigo-500 transition-all">Question suivante</button>
-        )}
+        {/* Indicateur "prets" — les joueurs cliquent sur leur telephone */}
+        <div className="mt-6 text-center">
+          <p className="text-gray-400 text-lg">
+            {(state?.readyPlayerIds?.length || 0)} / {players.length} joueurs prets
+          </p>
+          <div className="flex gap-2 justify-center mt-2">
+            {players.map((p) => (
+              <div key={p.id} className={`px-3 py-1 rounded-lg text-sm ${state?.readyPlayerIds?.includes(p.id) ? "bg-green-500/20 text-green-400" : "bg-white/5 text-gray-600"}`}>
+                {p.avatar} {p.name} {state?.readyPlayerIds?.includes(p.id) && "✓"}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

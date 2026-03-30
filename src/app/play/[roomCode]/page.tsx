@@ -41,7 +41,7 @@ export default function PlayPage({ params }: { params: Promise<{ roomCode: strin
 function PlayContent({ roomCode }: { roomCode: string }) {
   const searchParams = useSearchParams();
   const { state, loading, error } = useGameState(roomCode);
-  const { submitAnswer, hostControl, getCredentials } = useGameActions(roomCode);
+  const { submitAnswer, hostControl, markReady, getCredentials } = useGameActions(roomCode);
   const deadline = state?.room?.questionDeadline || 0;
   const { remainingSeconds, isExpired } = useTimer(deadline);
 
@@ -192,6 +192,8 @@ function PlayContent({ roomCode }: { roomCode: string }) {
         submitError={submitError}
         handleAnswer={handleAnswer}
         hostControl={hostControl}
+        markReady={markReady}
+        readyPlayerIds={state.readyPlayerIds ?? []}
       />
     );
   }
@@ -250,17 +252,32 @@ function PlayContent({ roomCode }: { roomCode: string }) {
     );
   }
 
-  // REVEAL (telecommande)
+  // REVEAL (telecommande) — bouton "Je suis pret"
   if (room.status === "reveal" && revealData) {
     const myResult = revealData.playerResults.find((r) => r.playerId === myId);
+    const imReady = state?.readyPlayerIds?.includes(myId || "");
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
         {myResult?.correct ? (
-          <><div className="text-8xl mb-4">🎉</div><p className="text-4xl font-bold text-green-400">Correct !</p></>
+          <><div className="text-7xl mb-3">🎉</div><p className="text-3xl font-bold text-green-400">Correct !</p></>
         ) : (
-          <><div className="text-8xl mb-4">😔</div><p className="text-4xl font-bold text-red-400">Incorrect</p></>
+          <><div className="text-7xl mb-3">😔</div><p className="text-3xl font-bold text-red-400">Incorrect</p></>
         )}
-        <p className="text-gray-400 mt-6 text-lg">Reponse : <span className="text-white font-bold">{ANSWER_LABELS[revealData.correctIndex]}</span></p>
+        <p className="text-gray-400 mt-4 text-lg">Reponse : <span className="text-white font-bold">{ANSWER_LABELS[revealData.correctIndex]}</span></p>
+
+        {!imReady ? (
+          <button
+            onClick={() => markReady()}
+            className="mt-8 px-10 py-5 rounded-2xl bg-gradient-to-r from-green-600 to-emerald-600 text-2xl font-bold active:scale-95 transition-all animate-pulse-glow"
+          >
+            Je suis pret !
+          </button>
+        ) : (
+          <div className="mt-8">
+            <p className="text-green-400 text-xl font-bold mb-2">✓ Pret !</p>
+            <p className="text-gray-500 text-sm">En attente des autres joueurs...</p>
+          </div>
+        )}
       </div>
     );
   }
@@ -303,7 +320,7 @@ function PlayContent({ roomCode }: { roomCode: string }) {
 function RemoteView({
   room, players, scores, currentQuestion, revealData, answeredPlayerIds,
   myId, myPlayer, isHost, roomCode, remainingSeconds, isExpired,
-  selectedAnswer, submitError, handleAnswer, hostControl,
+  selectedAnswer, submitError, handleAnswer, hostControl, markReady, readyPlayerIds,
 }: {
   room: { status: string; currentQuestionIndex: number; totalQuestions: number; hostId: string; roomCode: string; questionDeadline: number; timeLimitSeconds: number };
   players: { id: string; name: string; avatar: string; score: number }[];
@@ -321,6 +338,8 @@ function RemoteView({
   submitError: string;
   handleAnswer: (i: number) => void;
   hostControl: (action: "start" | "begin" | "next" | "end") => Promise<unknown>;
+  markReady: () => Promise<unknown>;
+  readyPlayerIds: string[];
 }) {
   const [introStep, setIntroStep] = useState(0);
 
@@ -451,11 +470,7 @@ function RemoteView({
 
         {submitError && <p className="text-red-400 text-center mt-2 text-sm">{submitError}</p>}
 
-        {isHost && isExpired && !alreadyAnswered && (
-          <button onClick={() => hostControl("next")} className="mt-4 mx-auto px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 font-bold transition">
-            Voir la reponse
-          </button>
-        )}
+        {/* Auto-resolve : le serveur detecte le timer expire automatiquement */}
       </div>
     );
   }
@@ -524,14 +539,17 @@ function RemoteView({
           </div>
         </div>
 
-        {isHost && (
-          <button onClick={() => hostControl("next")}
-            className="mt-4 mx-auto px-10 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-lg font-bold transition-all">
-            Question suivante
+        {/* Bouton Je suis pret */}
+        {!readyPlayerIds.includes(myId || "") ? (
+          <button onClick={() => markReady()}
+            className="mt-4 mx-auto px-10 py-4 rounded-2xl bg-gradient-to-r from-green-600 to-emerald-600 text-xl font-bold active:scale-95 transition-all animate-pulse-glow">
+            Je suis pret !
           </button>
-        )}
-        {!isHost && (
-          <p className="text-center text-gray-500 mt-4 text-sm">En attente de la prochaine question...</p>
+        ) : (
+          <div className="mt-4 text-center">
+            <p className="text-green-400 font-bold">✓ Pret !</p>
+            <p className="text-gray-500 text-xs mt-1">{readyPlayerIds.length}/{players.length} prets</p>
+          </div>
         )}
       </div>
     );
