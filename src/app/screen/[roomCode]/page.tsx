@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useState, useMemo } from "react";
 import { useGameState } from "@/hooks/useGameState";
 import { useGameActions } from "@/hooks/useGameActions";
 import { useTimer } from "@/hooks/useTimer";
@@ -15,6 +15,7 @@ const ANSWER_COLORS = [
 const ANSWER_LABELS = ["A", "B", "C", "D"];
 const DIFFICULTY_LABELS = ["", "Trivial", "Facile", "Facile+", "Moyen-", "Moyen", "Moyen+", "Difficile", "Tres dur", "Expert", "Impossible"];
 const DIFFICULTY_COLORS = ["", "text-green-400", "text-green-400", "text-lime-400", "text-yellow-400", "text-yellow-400", "text-orange-400", "text-orange-400", "text-red-400", "text-red-400", "text-red-600"];
+const PLAYER_AVATARS = ["🎮", "🎯", "🚀", "⚡", "🔥", "💎", "🌟", "🎪"];
 
 export default function ScreenPage({ params }: { params: Promise<{ roomCode: string }> }) {
   const { roomCode } = use(params);
@@ -23,7 +24,54 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
   const deadline = state?.room?.questionDeadline || 0;
   const { remainingSeconds, isExpired } = useTimer(deadline);
 
+  // State pour ajouter des joueurs sur l'ecran TV
+  const [newPlayerName, setNewPlayerName] = useState("");
+  const [addingPlayer, setAddingPlayer] = useState(false);
+  const [addError, setAddError] = useState("");
+  // Map playerId -> {playerId, token} pour les QR codes
+  const [playerCredentials, setPlayerCredentials] = useState<Record<string, { playerId: string; token: string }>>({});
+
   const isHost = typeof window !== "undefined" && sessionStorage.getItem(`isHost_${roomCode}`) === "true";
+  const appUrl = typeof window !== "undefined" ? window.location.origin : "";
+
+  // Charger les credentials du host au mount
+  useMemo(() => {
+    if (typeof window === "undefined") return;
+    const hostId = sessionStorage.getItem(`player_${roomCode}`);
+    const hostToken = sessionStorage.getItem(`token_${roomCode}`);
+    if (hostId && hostToken) {
+      setPlayerCredentials((prev) => ({ ...prev, [hostId]: { playerId: hostId, token: hostToken } }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomCode]);
+
+  async function handleAddPlayer() {
+    if (!newPlayerName.trim()) return;
+    setAddingPlayer(true);
+    setAddError("");
+
+    try {
+      const avatar = PLAYER_AVATARS[(state?.players?.length || 0) % PLAYER_AVATARS.length];
+      const res = await fetch("/api/game/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roomCode, playerName: newPlayerName.trim(), avatar }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      // Stocker les credentials pour generer le QR code
+      setPlayerCredentials((prev) => ({
+        ...prev,
+        [data.playerId]: { playerId: data.playerId, token: data.token },
+      }));
+      setNewPlayerName("");
+    } catch (err) {
+      setAddError(err instanceof Error ? err.message : "Erreur");
+    } finally {
+      setAddingPlayer(false);
+    }
+  }
 
   if (loading && !state) {
     return (
@@ -44,63 +92,97 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
   if (!state) return null;
 
   const { room, players, scores, currentQuestion, revealData, answeredPlayerIds } = state;
-  const appUrl = typeof window !== "undefined" ? window.location.origin : "";
 
-  // === LOBBY ===
+  // Detecter quels joueurs ont connecte leur telephone
+  // Un joueur a "scanne" = son telephone poll le state (on le detecte via un champ)
+  // Pour simplifier : on considere que si le joueur a des credentials dans notre map, son QR est pret
+  const allPlayersHaveQR = players.every((p) => playerCredentials[p.id]);
+
+  // === LOBBY : Ajouter joueurs + QR codes ===
   if (room.status === "waiting") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-8 space-y-8">
-        <h1 className="text-5xl font-bold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">
+      <div className="min-h-screen flex flex-col items-center justify-center p-8">
+        <h1 className="text-5xl font-bold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent mb-8">
           LOGIQUE
         </h1>
 
-        <div className="flex items-center gap-12">
-          {/* Code Room */}
-          <div className="text-center">
-            <p className="text-gray-400 text-lg mb-2">Code de la partie</p>
-            <div className="text-8xl font-mono font-bold tracking-[0.3em] text-white animate-pulse-glow px-8 py-4 rounded-2xl bg-white/5 border border-white/10">
-              {roomCode}
-            </div>
-          </div>
-
-          {/* QR Code */}
-          <div className="bg-white p-4 rounded-2xl">
-            <QRCodeSVG
-              value={`${appUrl}/play/${roomCode}`}
-              size={200}
-              level="M"
+        {/* Zone ajout joueurs */}
+        <div className="w-full max-w-2xl mb-8">
+          <div className="flex gap-3">
+            <input
+              type="text"
+              placeholder="Nom du joueur..."
+              value={newPlayerName}
+              onChange={(e) => setNewPlayerName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddPlayer()}
+              maxLength={20}
+              className="flex-1 px-5 py-4 rounded-xl bg-white/10 border border-white/20 text-lg placeholder:text-gray-500 focus:outline-none focus:border-violet-500"
+              autoFocus
             />
-          </div>
-        </div>
-
-        <p className="text-gray-400">Scannez le QR code ou entrez le code sur votre telephone</p>
-
-        {/* Joueurs */}
-        <div className="flex flex-wrap gap-4 justify-center">
-          {players.map((p, i) => (
-            <div
-              key={p.id}
-              className="px-6 py-3 rounded-xl bg-white/10 border border-white/20 text-lg animate-slide-up"
-              style={{ animationDelay: `${i * 100}ms` }}
+            <button
+              onClick={handleAddPlayer}
+              disabled={addingPlayer}
+              className="px-8 py-4 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-lg font-bold disabled:opacity-50 hover:from-cyan-500 hover:to-blue-500 transition-all whitespace-nowrap"
             >
-              {p.avatar} {p.name}
-            </div>
-          ))}
+              + Ajouter
+            </button>
+          </div>
+          {addError && <p className="text-red-400 mt-2 text-sm">{addError}</p>}
         </div>
 
-        <p className="text-gray-500">{players.length} joueur{players.length > 1 ? "s" : ""} connecte{players.length > 1 ? "s" : ""}</p>
+        {/* Liste des joueurs avec QR codes */}
+        {players.length > 0 && (
+          <div className="w-full max-w-4xl">
+            <p className="text-gray-400 text-center mb-4">
+              Chaque joueur scanne SON QR code avec son telephone
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {players.map((p) => {
+                const creds = playerCredentials[p.id];
+                const qrUrl = creds
+                  ? `${appUrl}/play/${roomCode}?p=${creds.playerId}&t=${creds.token}`
+                  : "";
 
-        {isHost && players.length >= 2 && (
+                return (
+                  <div
+                    key={p.id}
+                    className="flex flex-col items-center p-4 rounded-2xl bg-white/5 border border-white/10 animate-slide-up"
+                  >
+                    <p className="text-lg font-bold mb-3">
+                      {p.avatar} {p.name}
+                    </p>
+                    {qrUrl ? (
+                      <div className="bg-white p-3 rounded-xl">
+                        <QRCodeSVG value={qrUrl} size={140} level="M" />
+                      </div>
+                    ) : (
+                      <div className="w-[164px] h-[164px] bg-white/10 rounded-xl flex items-center justify-center text-gray-500 text-sm">
+                        QR en cours...
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <p className="text-gray-500 mt-6">
+          {players.length} joueur{players.length > 1 ? "s" : ""} inscrit{players.length > 1 ? "s" : ""}
+        </p>
+
+        {/* Bouton demarrer */}
+        {isHost && players.length >= 2 && allPlayersHaveQR && (
           <button
             onClick={() => hostControl("start")}
-            className="px-12 py-5 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 text-2xl font-bold hover:from-violet-500 hover:to-indigo-500 transition-all animate-pulse-glow"
+            className="mt-6 px-12 py-5 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 text-2xl font-bold hover:from-violet-500 hover:to-indigo-500 transition-all animate-pulse-glow"
           >
-            Commencer la partie
+            Lancer la partie !
           </button>
         )}
 
-        {isHost && players.length < 2 && (
-          <p className="text-yellow-400">En attente d&apos;au moins 2 joueurs...</p>
+        {players.length < 2 && players.length > 0 && (
+          <p className="mt-4 text-yellow-400">Ajoutez au moins 1 autre joueur pour commencer</p>
         )}
       </div>
     );
@@ -140,7 +222,7 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
             {currentQuestion.text}
           </h2>
 
-          {/* Choices (reference, non-cliquable) */}
+          {/* Choices (reference sur l'ecran) */}
           <div className="grid grid-cols-2 gap-4 w-full">
             {currentQuestion.choices.map((choice, i) => (
               <div
@@ -156,7 +238,7 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
           </div>
         </div>
 
-        {/* Joueurs qui ont repondu */}
+        {/* Qui a repondu */}
         <div className="flex gap-3 justify-center mt-8">
           {players.map((p) => {
             const answered = answeredPlayerIds?.includes(p.id);
@@ -175,7 +257,6 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
           })}
         </div>
 
-        {/* Host: forcer next si timer expire */}
         {isHost && isExpired && (
           <button
             onClick={() => hostControl("next")}
@@ -199,7 +280,6 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
         <div className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full">
           <h2 className="text-2xl font-bold text-center mb-8">{currentQuestion.text}</h2>
 
-          {/* Choices avec highlight */}
           <div className="grid grid-cols-2 gap-4 w-full mb-8">
             {currentQuestion.choices.map((choice, i) => {
               const isCorrect = i === revealData.correctIndex;
@@ -228,7 +308,7 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
             <p className="text-gray-300 text-lg leading-relaxed">{revealData.explanation}</p>
           </div>
 
-          {/* Resultats des joueurs */}
+          {/* Resultats joueurs */}
           <div className="flex flex-wrap gap-3 justify-center">
             {revealData.playerResults.map((pr) => (
               <div
@@ -241,7 +321,7 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
               >
                 {pr.playerName}: {pr.correct ? "✓" : "✗"}
                 {pr.chosenIndex !== null && ` (${ANSWER_LABELS[pr.chosenIndex]})`}
-                {pr.chosenIndex === null && " (pas de reponse)"}
+                {pr.chosenIndex === null && " (pas repondu)"}
               </div>
             ))}
           </div>
@@ -259,47 +339,12 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
     );
   }
 
-  // === LEADERBOARD / BETWEEN QUESTIONS ===
-  if (room.status === "leaderboard") {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-8">
-        <h2 className="text-4xl font-bold mb-12">Classement</h2>
-        <div className="w-full max-w-lg space-y-3">
-          {scores.map((s, i) => {
-            const player = players.find((p) => p.id === s.playerId);
-            return (
-              <div
-                key={s.playerId}
-                className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10 animate-slide-up"
-                style={{ animationDelay: `${i * 100}ms` }}
-              >
-                <span className="text-3xl font-bold w-10 text-center">
-                  {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}`}
-                </span>
-                <span className="text-xl flex-1">{player?.avatar} {player?.name}</span>
-                <span className="text-2xl font-mono font-bold text-violet-400">{s.score}</span>
-              </div>
-            );
-          })}
-        </div>
-        {isHost && (
-          <button
-            onClick={() => hostControl("next")}
-            className="mt-8 px-12 py-4 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-xl font-bold hover:from-violet-500 hover:to-indigo-500 transition-all"
-          >
-            Continuer
-          </button>
-        )}
-      </div>
-    );
-  }
-
   // === FIN DE PARTIE ===
   if (room.status === "finished") {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-8 relative overflow-hidden">
         {/* Confettis */}
-        {Array.from({ length: 30 }).map((_, i) => (
+        {Array.from({ length: 40 }).map((_, i) => (
           <div
             key={i}
             className="absolute w-3 h-3 rounded-sm animate-confetti"
@@ -341,19 +386,20 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
           )}
         </div>
 
-        {/* Classement complet */}
-        <div className="w-full max-w-lg space-y-2">
-          {scores.slice(3).map((s, i) => {
-            const player = players.find((p) => p.id === s.playerId);
-            return (
-              <div key={s.playerId} className="flex items-center gap-4 p-3 rounded-lg bg-white/5">
-                <span className="text-gray-500 w-8 text-center">{i + 4}</span>
-                <span className="flex-1">{player?.name}</span>
-                <span className="font-mono text-gray-400">{s.score}</span>
-              </div>
-            );
-          })}
-        </div>
+        {scores.length > 3 && (
+          <div className="w-full max-w-lg space-y-2">
+            {scores.slice(3).map((s, i) => {
+              const player = players.find((p) => p.id === s.playerId);
+              return (
+                <div key={s.playerId} className="flex items-center gap-4 p-3 rounded-lg bg-white/5">
+                  <span className="text-gray-500 w-8 text-center">{i + 4}</span>
+                  <span className="flex-1">{player?.name}</span>
+                  <span className="font-mono text-gray-400">{s.score}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         <button
           onClick={() => window.location.href = "/"}
