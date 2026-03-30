@@ -54,15 +54,11 @@ function PlayContent({ roomCode }: { roomCode: string }) {
   const [lastQuestionIndex, setLastQuestionIndex] = useState(-1);
   const [ready, setReady] = useState(false);
 
-  // Audio en mode remote (host seulement)
+  // Audio en mode remote (tous les joueurs entendent l'animateur)
   useEffect(() => {
     if (!state) return;
     const { room, players, currentQuestion, revealData, scores } = state;
     if (room.mode !== "remote") return;
-    // Audio uniquement pour le host
-    const myId = typeof window !== "undefined" ? sessionStorage.getItem(`player_${roomCode}`) : null;
-    const amHost = typeof window !== "undefined" && (sessionStorage.getItem(`isHost_${roomCode}`) === "true" || myId === room.hostId);
-    if (!amHost) return;
 
     const key = `${room.status}-${room.currentQuestionIndex}`;
     if (key === lastSpokenRef.current) return;
