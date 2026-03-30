@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+:root {
+  --color-answer-a: #3b82f6;
+  --color-answer-b: #f97316;
+  --color-answer-c: #22c55e;
+  --color-answer-d: #a855f7;
+  --bg-gradient-from: #0f0a2e;
+  --bg-gradient-to: #1a0a3e;
+}
+
+body {
+  background: linear-gradient(135deg, var(--bg-gradient-from), var(--bg-gradient-to));
+  color: white;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.6); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes confetti-fall {
+  0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+.animate-slide-up { animation: slide-up 0.5s ease-out forwards; }
+.animate-confetti { animation: confetti-fall 3s ease-in forwards; }
+
+.timer-bar {
+  transition: width 100ms linear;
+}
