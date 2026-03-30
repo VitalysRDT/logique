@@ -1,10 +1,17 @@
 "use client";
 
-import { Suspense, use, useState, useEffect } from "react";
+import { Suspense, use, useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useGameState } from "@/hooks/useGameState";
 import { useGameActions } from "@/hooks/useGameActions";
 import { useTimer } from "@/hooks/useTimer";
+import { useAudio } from "@/hooks/useAudio";
+import {
+  rulesIntro,
+  questionIntro,
+  revealComment,
+  gameOverComment,
+} from "@/lib/commentary";
 
 const ANSWER_COLORS_DISPLAY = [
   "from-blue-600 to-blue-500",
@@ -38,11 +45,45 @@ function PlayContent({ roomCode }: { roomCode: string }) {
   const deadline = state?.room?.questionDeadline || 0;
   const { remainingSeconds, isExpired } = useTimer(deadline);
 
+  const { speak, speakNow, stop } = useAudio();
+  const lastSpokenRef = useRef<string>("");
+
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [lastQuestionIndex, setLastQuestionIndex] = useState(-1);
   const [ready, setReady] = useState(false);
+
+  // Audio en mode remote (host seulement)
+  useEffect(() => {
+    if (!state) return;
+    const { room, players, currentQuestion, revealData, scores } = state;
+    if (room.mode !== "remote") return;
+    // Audio uniquement pour le host
+    const myId = typeof window !== "undefined" ? sessionStorage.getItem(`player_${roomCode}`) : null;
+    const amHost = typeof window !== "undefined" && (sessionStorage.getItem(`isHost_${roomCode}`) === "true" || myId === room.hostId);
+    if (!amHost) return;
+
+    const key = `${room.status}-${room.currentQuestionIndex}`;
+    if (key === lastSpokenRef.current) return;
+    lastSpokenRef.current = key;
+
+    if (room.status === "playing" && currentQuestion) {
+      const qNum = room.currentQuestionIndex + 1;
+      if (qNum === 1) {
+        speakNow(rulesIntro(players.map((p) => p.name)));
+        speak(questionIntro(qNum, room.totalQuestions, currentQuestion.difficulty, currentQuestion.text));
+      } else {
+        speakNow(questionIntro(qNum, room.totalQuestions, currentQuestion.difficulty, currentQuestion.text));
+      }
+    } else if (room.status === "reveal" && revealData && currentQuestion) {
+      speakNow(revealComment(currentQuestion.choices[revealData.correctIndex], revealData.explanation, revealData.playerResults));
+    } else if (room.status === "finished" && scores.length > 0) {
+      speakNow(gameOverComment(scores.map((s) => ({ playerName: players.find((p) => p.id === s.playerId)?.name || "?", score: s.score }))));
+    }
+  }, [state, speak, speakNow, roomCode]);
+
+  useEffect(() => () => stop(), [stop]);
 
   // Credentials depuis URL (QR code) ou sessionStorage
   useEffect(() => {

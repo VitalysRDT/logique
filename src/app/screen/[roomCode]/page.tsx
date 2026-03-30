@@ -1,10 +1,17 @@
 "use client";
 
-import { use, useState, useMemo } from "react";
+import { use, useState, useEffect, useRef, useMemo } from "react";
 import { useGameState } from "@/hooks/useGameState";
 import { useGameActions } from "@/hooks/useGameActions";
 import { useTimer } from "@/hooks/useTimer";
+import { useAudio } from "@/hooks/useAudio";
 import { QRCodeSVG } from "qrcode.react";
+import {
+  rulesIntro,
+  questionIntro,
+  revealComment,
+  gameOverComment,
+} from "@/lib/commentary";
 
 const ANSWER_COLORS = [
   "from-blue-600 to-blue-500",
@@ -31,8 +38,43 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
   // Map playerId -> {playerId, token} pour les QR codes
   const [playerCredentials, setPlayerCredentials] = useState<Record<string, { playerId: string; token: string }>>({});
 
+  const { speak, speakNow, stop } = useAudio();
+  const lastSpokenRef = useRef<string>("");
   const isHost = typeof window !== "undefined" && sessionStorage.getItem(`isHost_${roomCode}`) === "true";
   const appUrl = typeof window !== "undefined" ? window.location.origin : "";
+
+  // === AUDIO : declencher les commentaires selon l'etat ===
+  useEffect(() => {
+    if (!state) return;
+    const { room, players, currentQuestion, revealData, scores } = state;
+    const key = `${room.status}-${room.currentQuestionIndex}`;
+    if (key === lastSpokenRef.current) return;
+    lastSpokenRef.current = key;
+
+    if (room.status === "playing" && currentQuestion) {
+      const qNum = room.currentQuestionIndex + 1;
+      if (qNum === 1) {
+        // Intro regles + premiere question
+        const names = players.map((p) => p.name);
+        speakNow(rulesIntro(names));
+        speak(questionIntro(qNum, room.totalQuestions, currentQuestion.difficulty, currentQuestion.text));
+      } else {
+        speakNow(questionIntro(qNum, room.totalQuestions, currentQuestion.difficulty, currentQuestion.text));
+      }
+    } else if (room.status === "reveal" && revealData && currentQuestion) {
+      const correctAnswer = currentQuestion.choices[revealData.correctIndex];
+      speakNow(revealComment(correctAnswer, revealData.explanation, revealData.playerResults));
+    } else if (room.status === "finished" && scores.length > 0) {
+      const named = scores.map((s) => ({
+        playerName: players.find((p) => p.id === s.playerId)?.name || "?",
+        score: s.score,
+      }));
+      speakNow(gameOverComment(named));
+    }
+  }, [state, speak, speakNow]);
+
+  // Stop audio on unmount
+  useEffect(() => () => stop(), [stop]);
 
   // Charger les credentials du host au mount
   useMemo(() => {
