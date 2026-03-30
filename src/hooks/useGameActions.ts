@@ -2,6 +2,16 @@
 
 import { useCallback } from "react";
 
+async function safeJson(res: Response) {
+  const text = await res.text();
+  if (!text) return { error: `HTTP ${res.status}` };
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { error: text };
+  }
+}
+
 export function useGameActions(roomCode: string) {
   const getCredentials = useCallback(() => {
     if (typeof window === "undefined") return { playerId: "", token: "" };
@@ -19,7 +29,7 @@ export function useGameActions(roomCode: string) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ playerId, token, optionId }),
       });
-      return res.json();
+      return safeJson(res);
     },
     [roomCode, getCredentials]
   );
@@ -32,7 +42,7 @@ export function useGameActions(roomCode: string) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ playerId, token, action }),
       });
-      return res.json();
+      return safeJson(res);
     },
     [roomCode, getCredentials]
   );

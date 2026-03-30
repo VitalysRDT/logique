@@ -7,33 +7,41 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ roomCode: string }> }
 ) {
-  const { roomCode } = await params;
-  const { playerId, token, action } = await request.json();
+  try {
+    const { roomCode } = await params;
+    const { playerId, token, action } = await request.json();
 
-  // Valider que c'est le host
-  const state = await redis.hgetall(`room:${roomCode}:state`);
-  if (!state || !state.roomCode) {
-    return NextResponse.json({ error: "Room introuvable" }, { status: 404 });
-  }
+    // Valider que c'est le host
+    const state = await redis.hgetall(`room:${roomCode}:state`);
+    if (!state || !state.roomCode) {
+      return NextResponse.json({ error: "Room introuvable" }, { status: 404 });
+    }
 
-  const playerRaw = await redis.hget(`room:${roomCode}:players`, playerId);
-  if (!playerRaw) {
-    return NextResponse.json({ error: "Joueur introuvable" }, { status: 404 });
-  }
-  const player = typeof playerRaw === "string" ? JSON.parse(playerRaw) : playerRaw;
-  if (player.token !== token || playerId !== state.hostId) {
-    return NextResponse.json({ error: "Non autorise" }, { status: 403 });
-  }
+    const playerRaw = await redis.hget(`room:${roomCode}:players`, playerId);
+    if (!playerRaw) {
+      return NextResponse.json({ error: "Joueur introuvable" }, { status: 404 });
+    }
+    const player = typeof playerRaw === "string" ? JSON.parse(playerRaw) : playerRaw;
+    if (player.token !== token || playerId !== state.hostId) {
+      return NextResponse.json({ error: `Non autorise: hostId=${state.hostId} playerId=${playerId} tokenMatch=${player.token === token}` }, { status: 403 });
+    }
 
-  switch (action) {
-    case "start":
-      return handleStart(roomCode, state);
-    case "next":
-      return handleNext(roomCode, state);
-    case "end":
-      return handleEnd(roomCode);
-    default:
-      return NextResponse.json({ error: "Action inconnue" }, { status: 400 });
+    switch (action) {
+      case "start":
+        return await handleStart(roomCode, state);
+      case "next":
+        return await handleNext(roomCode, state);
+      case "end":
+        return await handleEnd(roomCode);
+      default:
+        return NextResponse.json({ error: "Action inconnue" }, { status: 400 });
+    }
+  } catch (err) {
+    console.error("CONTROL ERROR:", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { status: 500 }
+    );
   }
 }
 

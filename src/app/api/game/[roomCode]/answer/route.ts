@@ -7,6 +7,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ roomCode: string }> }
 ) {
+  try {
   const { roomCode } = await params;
   const { playerId, token, optionId } = await request.json();
 
@@ -65,6 +66,13 @@ export async function POST(
   }
 
   return NextResponse.json({ accepted: true });
+  } catch (err) {
+    console.error("ANSWER ERROR:", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { status: 500 }
+    );
+  }
 }
 
 async function resolveQuestion(
