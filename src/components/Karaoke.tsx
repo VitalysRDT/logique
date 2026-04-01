@@ -3,207 +3,232 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 interface LyricLine {
-  time: number; // seconds
+  time: number;
   text: string;
-  type?: "chorus" | "bridge" | "normal" | "shout";
+  type?: "chorus" | "bridge" | "shout" | "instrumental";
 }
 
+// ⚠️ AJUSTER CES TIMINGS en ecoutant le MP3
+// Format: { time: secondes_debut, text: "paroles", type: "style" }
 const LYRICS: LyricLine[] = [
-  // Intro instrumental
-  { time: 0, text: "♪ ♪ ♪", type: "normal" },
+  { time: 0, text: "♫  ♫  ♫", type: "instrumental" },
 
-  // Couplet 1
   { time: 8, text: "Ce soir on joue, ce soir on pense" },
   { time: 12, text: "Cent questions pour tester votre intelligence" },
   { time: 16, text: "Du trivial jusqu'à l'impossible" },
   { time: 20, text: "Seuls les meilleurs seront invincibles" },
 
-  // Pré-refrain
   { time: 24, text: "Trois, deux, un, c'est parti !", type: "shout" },
   { time: 27, text: "Buzzez vite, buzzez bien" },
   { time: 30, text: "Le chrono tourne, pas le choix" },
   { time: 33, text: "Réfléchissez, appuyez !" },
 
-  // Refrain
   { time: 36, text: "Lo-gi-que ! Lo-gi-que !", type: "chorus" },
   { time: 40, text: "On allume les cerveaux ce soir", type: "chorus" },
   { time: 44, text: "Lo-gi-que ! Lo-gi-que !", type: "chorus" },
   { time: 48, text: "Qui sera le plus fort, on va voir !", type: "chorus" },
 
-  // Interlude
-  { time: 52, text: "♪ ♪ ♪", type: "normal" },
+  { time: 52, text: "♫  ♫  ♫", type: "instrumental" },
 
-  // Couplet 2
   { time: 56, text: "Niveau facile, ça va ça vient" },
   { time: 60, text: "Niveau expert, on n'y comprend rien" },
   { time: 64, text: "Les points qui montent, le score qui flambe" },
   { time: 68, text: "Est-ce que t'as le QI d'un génie ?" },
 
-  // Pré-refrain 2
   { time: 72, text: "Plus vite tu buzzes, plus tu gagnes" },
   { time: 75, text: "La logique, c'est ton arme" },
   { time: 78, text: "Le classement change à chaque instant" },
   { time: 81, text: "Qui prend la tête maintenant ?", type: "shout" },
 
-  // Refrain 2
   { time: 84, text: "Lo-gi-que ! Lo-gi-que !", type: "chorus" },
   { time: 88, text: "On allume les cerveaux ce soir", type: "chorus" },
   { time: 92, text: "Lo-gi-que ! Lo-gi-que !", type: "chorus" },
   { time: 96, text: "Qui sera le plus fort, on va voir !", type: "chorus" },
 
-  // Bridge
   { time: 100, text: "Les neurones chauffent...", type: "bridge" },
   { time: 103, text: "La pression monte...", type: "bridge" },
   { time: 106, text: "Cinq secondes... quatre... trois...", type: "bridge" },
 
-  // Refrain final
   { time: 109, text: "LO-GI-QUE ! LO-GI-QUE !", type: "shout" },
   { time: 112, text: "Le champion c'est toi, faut y croire !", type: "chorus" },
 
-  // Outro
-  { time: 116, text: "♪ ♪ ♪", type: "normal" },
+  { time: 116, text: "♫  ♫  ♫", type: "instrumental" },
 ];
 
-export default function Karaoke() {
-  const [playing, setPlaying] = useState(false);
+const TOTAL_DURATION = 120;
+
+export default function KaraokeFullscreen({ onSkip }: { onSkip: () => void }) {
+  const [started, setStarted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [currentLineIndex, setCurrentLineIndex] = useState(-1);
+  const [lineIndex, setLineIndex] = useState(-1);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const rafRef = useRef<number>(0);
+  const rafRef = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const tick = useCallback(() => {
     if (!audioRef.current) return;
     const t = audioRef.current.currentTime;
     setCurrentTime(t);
 
-    // Find current line
     let idx = -1;
     for (let i = LYRICS.length - 1; i >= 0; i--) {
-      if (t >= LYRICS[i].time) {
-        idx = i;
-        break;
-      }
+      if (t >= LYRICS[i].time) { idx = i; break; }
     }
-    setCurrentLineIndex(idx);
+    setLineIndex(idx);
 
-    if (!audioRef.current.paused) {
+    if (!audioRef.current.paused && !audioRef.current.ended) {
       rafRef.current = requestAnimationFrame(tick);
     }
   }, []);
 
-  function togglePlay() {
-    if (!audioRef.current) {
-      const audio = new Audio("/audio/theme.mp3");
-      audioRef.current = audio;
-      audio.addEventListener("ended", () => {
-        setPlaying(false);
-        setCurrentLineIndex(-1);
-        setCurrentTime(0);
-      });
-    }
-
-    if (playing) {
-      audioRef.current.pause();
-      cancelAnimationFrame(rafRef.current);
-      setPlaying(false);
-    } else {
-      audioRef.current.play();
+  function start() {
+    const audio = new Audio("/audio/theme.mp3");
+    audioRef.current = audio;
+    audio.addEventListener("ended", () => onSkip());
+    audio.play().then(() => {
+      setStarted(true);
       rafRef.current = requestAnimationFrame(tick);
-      setPlaying(true);
-    }
+    }).catch(() => {
+      // Autoplay blocked - start anyway
+      setStarted(true);
+      rafRef.current = requestAnimationFrame(tick);
+    });
   }
 
   useEffect(() => {
     return () => {
       cancelAnimationFrame(rafRef.current);
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     };
   }, []);
 
-  const currentLine = currentLineIndex >= 0 ? LYRICS[currentLineIndex] : null;
-  const nextLine = currentLineIndex + 1 < LYRICS.length ? LYRICS[currentLineIndex + 1] : null;
-  const prevLine = currentLineIndex > 0 ? LYRICS[currentLineIndex - 1] : null;
+  function handleSkip() {
+    cancelAnimationFrame(rafRef.current);
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    onSkip();
+  }
 
-  // Progress within current line (0 to 1)
-  const lineProgress = currentLine && nextLine
-    ? Math.min(1, (currentTime - currentLine.time) / (nextLine.time - currentLine.time))
-    : 0;
+  const currentLine = lineIndex >= 0 ? LYRICS[lineIndex] : null;
+  const nextLine = lineIndex + 1 < LYRICS.length ? LYRICS[lineIndex + 1] : null;
+  const progressPct = (currentTime / TOTAL_DURATION) * 100;
+
+  // Style par type
+  function lineStyle(type?: string, isCurrent?: boolean) {
+    if (!isCurrent) return "text-white/20";
+    switch (type) {
+      case "chorus": return "text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-pink-400 to-cyan-400 animate-gradient bg-[length:200%_200%] scale-110";
+      case "shout": return "text-yellow-400 scale-115";
+      case "bridge": return "text-violet-300 italic scale-105";
+      case "instrumental": return "text-white/30";
+      default: return "text-white";
+    }
+  }
+
+  // Splash screen "Appuyez pour commencer"
+  if (!started) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black" onClick={start}>
+        <div className="absolute inset-0 bg-gradient-to-b from-violet-950/50 via-transparent to-cyan-950/30" />
+        <div className="relative z-10 text-center px-6">
+          <h1 className="font-display text-6xl md:text-8xl font-bold bg-gradient-to-r from-violet-400 via-cyan-300 to-violet-400 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%] mb-6">
+            LOGIQUE
+          </h1>
+          <p className="text-xl text-white/60 mb-12">Le jeu de logique ultime</p>
+          <button className="px-8 py-4 rounded-2xl bg-white/10 border border-white/20 text-lg font-bold hover:bg-white/20 transition-all animate-pulse-glow">
+            Appuyez pour commencer
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      {/* Play button */}
-      <button
-        onClick={togglePlay}
-        className="w-full flex items-center justify-center gap-3 py-3 rounded-2xl glass-strong hover:border-violet-500/30 transition-all group"
-      >
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${playing ? "bg-violet-500 animate-pulse" : "bg-white/10 group-hover:bg-violet-500/50"}`}>
-          {playing ? (
-            <svg className="w-4 h-4" fill="white" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
-          ) : (
-            <svg className="w-5 h-5 ml-0.5" fill="white" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+    <div ref={containerRef} className="fixed inset-0 z-50 flex flex-col bg-black overflow-hidden select-none">
+      {/* Background animated */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-b from-violet-950/80 via-black to-cyan-950/40" />
+        {/* Animated orbs */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-600/15 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: "4s" }} />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-cyan-600/10 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: "5s", animationDelay: "1s" }} />
+        {currentLine?.type === "chorus" && (
+          <div className="absolute inset-0 bg-violet-500/5 transition-all duration-500" />
+        )}
+        {currentLine?.type === "shout" && (
+          <div className="absolute inset-0 bg-yellow-500/5 transition-all duration-300" />
+        )}
+      </div>
+
+      {/* Title (petit, en haut) */}
+      <div className="relative z-10 pt-6 text-center">
+        <p className="text-sm tracking-[0.3em] text-white/30 uppercase">Logique &mdash; Le G&eacute;n&eacute;rique</p>
+      </div>
+
+      {/* Lyrics zone — centre de l'ecran */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6">
+        {/* Lignes precedentes (defilent vers le haut, de plus en plus transparentes) */}
+        <div className="space-y-2 mb-6">
+          {LYRICS.slice(Math.max(0, lineIndex - 2), Math.max(0, lineIndex)).map((l, i) => (
+            <p key={`prev-${i}`} className={`text-center text-lg md:text-xl font-bold transition-all duration-500 ${i === 0 ? "text-white/10" : "text-white/20"}`}>
+              {l.text}
+            </p>
+          ))}
+        </div>
+
+        {/* LIGNE COURANTE */}
+        <div className="min-h-[80px] md:min-h-[100px] flex items-center justify-center">
+          {currentLine && (
+            <p className={`text-center text-3xl md:text-5xl font-bold font-display transition-all duration-300 leading-tight ${lineStyle(currentLine.type, true)}`}>
+              {currentLine.text}
+            </p>
           )}
         </div>
-        <span className="text-sm text-[var(--text-secondary)] group-hover:text-white transition">
-          {playing ? "En cours..." : "Écouter le générique"}
-        </span>
-        {playing && (
-          <div className="flex gap-0.5 items-end h-4">
-            {[1,2,3,4,5].map((i) => (
-              <div key={i} className="w-1 bg-violet-400 rounded-full animate-pulse" style={{ height: `${8 + Math.random() * 8}px`, animationDelay: `${i * 100}ms` }} />
+
+        {/* Lignes suivantes (preview) */}
+        <div className="space-y-2 mt-6">
+          {LYRICS.slice(lineIndex + 1, lineIndex + 3).map((l, i) => (
+            <p key={`next-${i}`} className={`text-center text-lg md:text-xl font-bold transition-all duration-500 ${i === 0 ? "text-white/25" : "text-white/10"}`}>
+              {l.text}
+            </p>
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom bar */}
+      <div className="relative z-10 pb-6 px-6">
+        {/* Progress bar */}
+        <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden mb-4">
+          <div className="h-full bg-gradient-to-r from-violet-500 via-pink-500 to-cyan-500 rounded-full transition-all duration-100" style={{ width: `${progressPct}%` }} />
+        </div>
+
+        <div className="flex items-center justify-between">
+          {/* Time */}
+          <span className="text-sm font-mono-game text-white/30">
+            {Math.floor(currentTime / 60)}:{String(Math.floor(currentTime % 60)).padStart(2, "0")}
+            <span className="text-white/15"> / 2:00</span>
+          </span>
+
+          {/* Equalizer */}
+          <div className="flex gap-[3px] items-end h-5">
+            {[0,1,2,3,4,5,6].map((i) => (
+              <div key={i} className="w-[3px] rounded-full bg-gradient-to-t from-violet-500 to-cyan-400 animate-pulse"
+                style={{
+                  height: `${6 + (currentLine?.type === "chorus" ? 14 : currentLine?.type === "shout" ? 12 : 8) * Math.random()}px`,
+                  animationDelay: `${i * 80}ms`,
+                  animationDuration: `${300 + i * 50}ms`,
+                }} />
             ))}
           </div>
-        )}
-      </button>
 
-      {/* Karaoke display */}
-      {playing && (
-        <div className="mt-4 rounded-2xl glass-strong p-5 text-center overflow-hidden animate-slide-up">
-          {/* Previous line (fading) */}
-          <p className="text-sm text-[var(--text-muted)] h-6 transition-all duration-300">
-            {prevLine?.text || ""}
-          </p>
-
-          {/* Current line (highlighted) */}
-          <div className="my-3 min-h-[48px] flex items-center justify-center">
-            {currentLine ? (
-              <p className={`font-bold transition-all duration-200 ${
-                currentLine.type === "chorus"
-                  ? "text-2xl bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent"
-                  : currentLine.type === "shout"
-                  ? "text-2xl text-yellow-400"
-                  : currentLine.type === "bridge"
-                  ? "text-xl text-violet-300 italic"
-                  : "text-xl text-white"
-              }`}>
-                {currentLine.text}
-              </p>
-            ) : (
-              <p className="text-[var(--text-muted)]">♪</p>
-            )}
-          </div>
-
-          {/* Next line (preview) */}
-          <p className="text-sm text-[var(--text-muted)] h-6 transition-all duration-300">
-            {nextLine?.text || ""}
-          </p>
-
-          {/* Progress bar for current line */}
-          <div className="mt-3 h-1 bg-white/5 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-violet-500 to-cyan-500 rounded-full transition-all duration-100"
-              style={{ width: `${lineProgress * 100}%` }}
-            />
-          </div>
-
-          {/* Time */}
-          <p className="mt-2 text-xs text-[var(--text-muted)] font-mono-game">
-            {Math.floor(currentTime / 60)}:{String(Math.floor(currentTime % 60)).padStart(2, "0")} / 2:00
-          </p>
+          {/* Skip button */}
+          <button onClick={handleSkip}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-white/40 hover:text-white/70 transition-all">
+            Passer
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
-      )}
+      </div>
     </div>
   );
 }

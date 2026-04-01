@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Karaoke from "@/components/Karaoke";
+import KaraokeFullscreen from "@/components/Karaoke";
 
 type Mode = "home" | "party-create" | "remote-create" | "remote-join";
 
 export default function Home() {
   const router = useRouter();
+  const [showKaraoke, setShowKaraoke] = useState(true);
   const [mode, setMode] = useState<Mode>("home");
   const [name, setName] = useState("");
   const [roomCode, setRoomCode] = useState("");
@@ -64,6 +65,11 @@ export default function Home() {
   }
 
   function back() { setMode("home"); setError(""); }
+
+  // Karaoke plein ecran au demarrage
+  if (showKaraoke) {
+    return <KaraokeFullscreen onSkip={() => setShowKaraoke(false)} />;
+  }
 
   return (
     <div className="min-h-dvh flex items-center justify-center p-4">
@@ -162,13 +168,6 @@ export default function Home() {
         {error && (
           <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-center text-red-400 text-sm animate-slide-up">
             {error}
-          </div>
-        )}
-
-        {/* Karaoke generique */}
-        {mode === "home" && (
-          <div className="mt-8">
-            <Karaoke />
           </div>
         )}
 
