@@ -145,7 +145,7 @@ export const questions: Omit<Question, "id">[] = [
     text: "2 + 2 = poisson. 3 + 3 = huit. 7 + 7 = triangle. 8 + 8 = infini. Que vaut 5 + 5 ?",
     choices: ["10", "Dix", "Oeuf", "Cinq"],
     correct_index: 2,
-    explanation: "On regarde la FORME du resultat : 4 ressemble a un poisson, 6 a un huit renverse... 10 : le 1 et le 0 forment un oeuf.",
+    explanation: "On regarde la FORME VISUELLE du résultat écrit en chiffres : 4 → deux traits qui se croisent comme un poisson, 6 → ressemble au chiffre 8 (boucles), 14 → forme triangulaire du 4, 16 → le 1 et le 6 forment un signe infini couché. Et 10 ? Le 1 à côté du 0 forme un œuf !",
     svg_config: null,
   },
   {
@@ -282,10 +282,10 @@ export const questions: Omit<Question, "id">[] = [
   },
   {
     difficulty: 4, category: "pattern", type: "text", time_limit: 20,
-    text: "Si FROID = 6, CHAUD = 5, TIEDE = 5, alors GLACE = ?",
-    choices: ["4", "5", "6", "7"],
-    correct_index: 1,
-    explanation: "Chaque mot vaut son nombre de lettres. FROID = 5 lettres... Attendez, FROID = 5 lettres, pas 6. Correction : on compte les lettres. GLACE = 5 lettres.",
+    text: "Si MAISON = 6, CHAT = 4, ARBRE = 5, alors LOGIQUE = ?",
+    choices: ["5", "6", "7", "8"],
+    correct_index: 2,
+    explanation: "Chaque mot vaut son nombre de lettres. MAISON = 6 lettres, CHAT = 4, ARBRE = 5. LOGIQUE = 7 lettres.",
     svg_config: null,
   },
   {
@@ -388,10 +388,10 @@ export const questions: Omit<Question, "id">[] = [
   },
   {
     difficulty: 5, category: "pattern", type: "text", time_limit: 20,
-    text: "1=5, 2=25, 3=125, 4=625, 5= ?",
+    text: "Si 1=5, 2=25, 3=125, 4=625, alors 5= ?",
     choices: ["3125", "1", "5", "25"],
     correct_index: 1,
-    explanation: "Piege ! La premiere equation dit 1=5. Par symetrie, 5=1.",
+    explanation: "Piège ! L'énoncé dit explicitement que 1=5. Si 1=5, alors par symétrie 5=1. Ce n'est pas un calcul de puissances de 5, c'est une relation d'égalité.",
     svg_config: null,
   },
   {
@@ -433,7 +433,7 @@ export const questions: Omit<Question, "id">[] = [
     text: "Combien de fois les aiguilles d'une horloge se superposent-elles en 24 heures ?",
     choices: ["24", "22", "23", "12"],
     correct_index: 1,
-    explanation: "En 12h, les aiguilles se croisent 11 fois (pas 12, car entre 11h et 1h il n'y a qu'un croisement a midi). En 24h : 22 fois.",
+    explanation: "En 12h, les aiguilles se croisent 11 fois (pas 12 : elles se superposent vers 12h00 mais le croisement entre 10h et 12h absorbe celui de 11h). En 24h : 22 fois.",
     svg_config: null,
   },
   {
@@ -531,7 +531,7 @@ export const questions: Omit<Question, "id">[] = [
     text: "Quelle est la suite : 1, 2, 4, 8, 16, 31, ?",
     choices: ["32", "57", "62", "64"],
     correct_index: 1,
-    explanation: "Ce N'EST PAS les puissances de 2 ! C'est le nombre maximal de regions creees par n points sur un cercle. Formule : (n⁴-6n³+23n²-18n+24)/24. Pour n=7 : 57.",
+    explanation: "Ce N'EST PAS les puissances de 2 ! C'est le nombre maximal de regions creees par n points sur un cercle. Formule : C(n,4)+C(n,2)+1. Pour n=7 : C(7,4)+C(7,2)+1 = 35+21+1 = 57.",
     svg_config: null,
   },
   {
@@ -668,10 +668,10 @@ export const questions: Omit<Question, "id">[] = [
   },
   {
     difficulty: 9, category: "deduction", type: "text", time_limit: 30,
-    text: "5 chapeaux (3 blancs, 2 noirs) sur 5 personnes en file. Chacun voit ceux devant. Le dernier voit 4 chapeaux, l'avant-dernier 3, etc. Le 1er ne voit rien. De l'arriere vers l'avant, chacun dit 'je sais' ou 'je ne sais pas'. Qui est le premier a savoir, et quelle couleur ?",
-    choices: ["Le 5e (arriere), blanc", "Le 3e (milieu), selon config", "Le 4e, blanc", "Personne ne peut savoir"],
-    correct_index: 1,
-    explanation: "Le 5e (voit 4) ne sait que s'il voit 2 noirs (rare). Sinon 'je ne sais pas'. Le 4e deduit de cette reponse. Le 3e combine les reponses du 4e et 5e pour deduire sa couleur. La reponse depend de la configuration, mais le 3e est souvent le premier a savoir.",
+    text: "3 chapeaux (2 blancs, 1 noir) sur 3 personnes en file. Chacun voit ceux devant. Le 3e (derriere) dit 'je ne sais pas'. Le 2e dit 'je ne sais pas'. Que sait le 1er (devant) ?",
+    choices: ["Son chapeau est blanc", "Son chapeau est noir", "Il ne peut pas savoir", "Ca depend"],
+    correct_index: 0,
+    explanation: "Le 3e voit les 2 devant. S'il voyait 2 noirs, il saurait (blanc force, il n'y a qu'1 noir). Il dit 'je ne sais pas' → il ne voit PAS 2 noirs. Le 2e le sait. S'il voyait un noir devant lui, il deduirait qu'il est blanc. Il dit 'je ne sais pas' → le 1er n'a pas un chapeau noir. Donc le 1er sait : il est blanc.",
     svg_config: null,
   },
   {
@@ -700,10 +700,10 @@ export const questions: Omit<Question, "id">[] = [
   },
   {
     difficulty: 9, category: "deduction", type: "text", time_limit: 40,
-    text: "A et B connaissent chacun un nombre. A dit : 'Je ne connais pas ton nombre'. B dit : 'Je ne connais pas ton nombre'. A dit : 'Je connais ton nombre'. Si la somme est 4 et les nombres sont des entiers positifs differents, quels sont les nombres ?",
-    choices: ["1 et 3", "2 et 2", "A=1, B=3", "A=3, B=1"],
+    text: "Deux amis pensent chacun a un entier positif. Leur somme est 11. Chacun connait la somme. A dit : 'Je ne connais pas ton nombre.' B dit : 'Je ne connais pas ton nombre.' A dit : 'Maintenant je connais ton nombre !' Quel est le nombre de A ?",
+    choices: ["3", "4", "5", "6"],
     correct_index: 3,
-    explanation: "Si A avait 1, B serait 3 (seule possibilite avec somme 4, entiers positifs differents). Mais A dit 'je ne sais pas' → A n'a pas 1 → A a 3. B entend cela et sait que A a 3 → B a 1. Mais B dit 'je ne sais pas' d'abord... Analyse complete : A=3, B=1.",
+    explanation: "Somme=11, entiers positifs : paires possibles (1,10) (2,9) (3,8) (4,7) (5,6) etc. Si A avait 1 ou 10, il saurait (une seule paire). A dit 'je ne sais pas' → A est entre 2 et 9. B raisonne pareil → B est entre 2 et 9. Au 2e tour, les paires restantes se reduisent. Au 3e tour, A peut deduire : A=6, B=5.",
     svg_config: null,
   },
   {
@@ -742,10 +742,10 @@ export const questions: Omit<Question, "id">[] = [
   // ===== DIFFICULTE 10 — IMPOSSIBLE (45s) =====
   {
     difficulty: 10, category: "math-logic", type: "text", time_limit: 45,
-    text: "Le probleme des chapeaux infini : un nombre denombrable de mathematiciens, chacun avec un chapeau (noir ou blanc). Chacun voit TOUS les autres chapeaux sauf le sien. Simultanement, chacun devine sa couleur. Est-il possible qu'au plus UN se trompe ?",
-    choices: ["Oui, grace a l'axiome du choix", "Non, c'est impossible", "Seulement si le nombre est fini", "Oui, avec une strategie probabiliste"],
+    text: "Le problème des chapeaux infini : un nombre dénombrable de mathématiciens, chacun avec un chapeau (noir ou blanc). Chacun voit TOUS les autres chapeaux sauf le sien. Simultanément, chacun devine sa couleur. Avec la bonne stratégie, combien se trompent au maximum ?",
+    choices: ["Un nombre fini (grâce à l'axiome du choix)", "La moitié en moyenne", "Tous sauf un", "Impossible de limiter les erreurs"],
     correct_index: 0,
-    explanation: "Oui ! Definissez des classes d'equivalence de suites binaires (deux suites equivalentes si elles different en un nombre fini de positions). Par l'axiome du choix, choisissez un representant par classe. Chaque math. voit la classe des autres, deduit le representant, et devine en consequence. Au plus un nombre FINI se trompe !",
+    explanation: "Grâce à l'axiome du choix ! On définit des classes d'équivalence de suites binaires (deux suites sont équivalentes si elles diffèrent en un nombre fini de positions). On choisit un représentant par classe. Chaque mathématicien voit tous les autres, déduit la classe, et devine selon le représentant. Résultat : au plus un nombre FINI de personnes se trompent.",
     svg_config: null,
   },
   {
@@ -783,9 +783,9 @@ export const questions: Omit<Question, "id">[] = [
   {
     difficulty: 10, category: "math-logic", type: "text", time_limit: 45,
     text: "Quelle est la cardinalite de l'ensemble des nombres reels entre 0 et 1 comparee a celle des reels entre 0 et l'infini ?",
-    choices: ["Strictement inferieure", "Egale (ℵ₁)", "Strictement superieure", "Incomparable"],
+    choices: ["Strictement inférieure", "Égale", "Strictement supérieure", "Incomparable"],
     correct_index: 1,
-    explanation: "Elles sont egales ! On peut construire une bijection : f(x) = tan(π(x - 1/2)) envoie (0,1) sur (-∞,+∞). L'infini des reels n'est pas 'plus grand' sur un intervalle fini que sur la droite entiere. Les deux ont la cardinalite du continu.",
+    explanation: "Elles sont égales ! On peut construire une bijection : f(x) = tan(π(x - 1/2)) envoie (0,1) sur (-∞,+∞). Les deux ensembles ont la même cardinalité (celle du continu, notée 𝔠 ou 2^ℵ₀). Un intervalle fini contient autant de réels que la droite entière !",
     svg_config: null,
   },
   {
