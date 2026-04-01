@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Karaoke from "@/components/Karaoke";
 
 type Mode = "home" | "party-create" | "remote-create" | "remote-join";
 
@@ -164,8 +165,15 @@ export default function Home() {
           </div>
         )}
 
+        {/* Karaoke generique */}
+        {mode === "home" && (
+          <div className="mt-8">
+            <Karaoke />
+          </div>
+        )}
+
         {/* Footer */}
-        <p className="text-center text-[var(--text-muted)] text-xs mt-8">
+        <p className="text-center text-[var(--text-muted)] text-xs mt-6">
           1 &agrave; 8 joueurs &middot; Navigateur web &middot; Aucune installation
         </p>
       </div>
