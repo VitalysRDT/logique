@@ -8,51 +8,52 @@ interface LyricLine {
   type?: "chorus" | "bridge" | "shout" | "instrumental";
 }
 
-// ⚠️ AJUSTER CES TIMINGS en ecoutant le MP3
-// Format: { time: secondes_debut, text: "paroles", type: "style" }
+// Timecodes extraits par Whisper (speech-to-text avec word timestamps)
 const LYRICS: LyricLine[] = [
-  { time: 0, text: "♫  ♫  ♫", type: "instrumental" },
+  { time: 0.0, text: "♫  ♫  ♫", type: "instrumental" },
 
-  { time: 8, text: "Ce soir on joue, ce soir on pense" },
-  { time: 12, text: "Cent questions pour tester votre intelligence" },
-  { time: 16, text: "Du trivial jusqu'à l'impossible" },
-  { time: 20, text: "Seuls les meilleurs seront invincibles" },
+  { time: 15.0, text: "Ce soir on joue, ce soir on pense" },
+  { time: 18.9, text: "Cent questions pour tester votre intelligence" },
+  { time: 22.3, text: "Du trivial jusqu'à l'impossible" },
+  { time: 26.0, text: "Seuls les meilleurs seront invincibles" },
 
-  { time: 24, text: "Trois, deux, un, c'est parti !", type: "shout" },
-  { time: 27, text: "Buzzez vite, buzzez bien" },
-  { time: 30, text: "Le chrono tourne, pas le choix" },
-  { time: 33, text: "Réfléchissez, appuyez !" },
+  { time: 29.9, text: "Trois, deux, un, c'est parti !", type: "shout" },
+  { time: 32.2, text: "Buzzez vite, buzzez bien" },
+  { time: 34.2, text: "Le chrono tourne, pas le choix" },
+  { time: 36.0, text: "Réfléchissez, appuyez !" },
 
-  { time: 36, text: "Lo-gi-que ! Lo-gi-que !", type: "chorus" },
-  { time: 40, text: "On allume les cerveaux ce soir", type: "chorus" },
-  { time: 44, text: "Lo-gi-que ! Lo-gi-que !", type: "chorus" },
-  { time: 48, text: "Qui sera le plus fort, on va voir !", type: "chorus" },
+  { time: 39.7, text: "Lo-gi-que ! Lo-gi-que !", type: "chorus" },
+  { time: 41.4, text: "On allume les cerveaux ce soir", type: "chorus" },
+  { time: 47.1, text: "Lo-gi-que ! Lo-gi-que !", type: "chorus" },
+  { time: 48.8, text: "Qui sera le plus fort, on va voir !", type: "chorus" },
 
-  { time: 52, text: "♫  ♫  ♫", type: "instrumental" },
+  { time: 51.7, text: "♫  ♫  ♫", type: "instrumental" },
 
-  { time: 56, text: "Niveau facile, ça va ça vient" },
-  { time: 60, text: "Niveau expert, on n'y comprend rien" },
-  { time: 64, text: "Les points qui montent, le score qui flambe" },
-  { time: 68, text: "Est-ce que t'as le QI d'un génie ?" },
+  { time: 52.7, text: "Niveau facile, ça va ça vient" },
+  { time: 55.6, text: "Niveau expert, on n'y comprend rien" },
+  { time: 59.8, text: "Les points qui montent, le score qui flambe" },
+  { time: 63.2, text: "Est-ce que t'as le QI d'un génie ?" },
 
-  { time: 72, text: "Plus vite tu buzzes, plus tu gagnes" },
-  { time: 75, text: "La logique, c'est ton arme" },
-  { time: 78, text: "Le classement change à chaque instant" },
-  { time: 81, text: "Qui prend la tête maintenant ?", type: "shout" },
+  { time: 67.2, text: "Plus vite tu buzzes, plus tu gagnes" },
+  { time: 69.4, text: "La logique, c'est ton arme" },
+  { time: 71.2, text: "Le classement change à chaque instant" },
+  { time: 72.9, text: "Qui prend la tête maintenant ?", type: "shout" },
 
-  { time: 84, text: "Lo-gi-que ! Lo-gi-que !", type: "chorus" },
-  { time: 88, text: "On allume les cerveaux ce soir", type: "chorus" },
-  { time: 92, text: "Lo-gi-que ! Lo-gi-que !", type: "chorus" },
-  { time: 96, text: "Qui sera le plus fort, on va voir !", type: "chorus" },
+  { time: 75.3, text: "Lo-gi-que ! Lo-gi-que !", type: "chorus" },
+  { time: 78.2, text: "On allume les cerveaux ce soir", type: "chorus" },
+  { time: 83.5, text: "Lo-gi-que ! Lo-gi-que !", type: "chorus" },
+  { time: 85.6, text: "Qui sera le plus fort, on va voir !", type: "chorus" },
 
-  { time: 100, text: "Les neurones chauffent...", type: "bridge" },
-  { time: 103, text: "La pression monte...", type: "bridge" },
-  { time: 106, text: "Cinq secondes... quatre... trois...", type: "bridge" },
+  { time: 89.2, text: "Les neurones chauffent...", type: "bridge" },
+  { time: 91.0, text: "La pression monte...", type: "bridge" },
+  { time: 92.5, text: "Cinq secondes... quatre... trois...", type: "bridge" },
 
-  { time: 109, text: "LO-GI-QUE ! LO-GI-QUE !", type: "shout" },
-  { time: 112, text: "Le champion c'est toi, faut y croire !", type: "chorus" },
+  { time: 96.3, text: "LO-GI-QUE ! LO-GI-QUE !", type: "shout" },
+  { time: 99.3, text: "On allume les cerveaux ce soir !", type: "chorus" },
+  { time: 105.0, text: "LO-GI-QUE ! LO-GI-QUE !", type: "shout" },
+  { time: 106.6, text: "Le champion c'est toi, faut y croire !", type: "chorus" },
 
-  { time: 116, text: "♫  ♫  ♫", type: "instrumental" },
+  { time: 110.4, text: "♫  ♫  ♫", type: "instrumental" },
 ];
 
 const TOTAL_DURATION = 120;
