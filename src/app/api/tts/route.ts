@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
-const VOICE_ID = "GBv7mTt0atIp3Br8iCZE"; // Thomas — voix FR masculine native
+const VOICE_ID = "WUAdt1wuIPYQ1XruI5dW"; // Nicolas Petit - Radio Host (FR, accent parisien)
 
 export async function POST(request: Request) {
   try {
