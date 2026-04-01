@@ -7,11 +7,14 @@ import { useGameActions } from "@/hooks/useGameActions";
 import { useTimer } from "@/hooks/useTimer";
 import { useAudio } from "@/hooks/useAudio";
 import {
-  rulesIntro,
+  rulesIntroSegments,
   questionIntro,
   revealComment,
   gameOverComment,
+  timerWarning,
+  leaderboardUpdate,
 } from "@/lib/commentary";
+import { estimateIQ, iqLabel } from "@/lib/scoring";
 
 const ANSWER_COLORS_DISPLAY = [
   "from-blue-600 to-blue-500",
@@ -45,8 +48,9 @@ function PlayContent({ roomCode }: { roomCode: string }) {
   const deadline = state?.room?.questionDeadline || 0;
   const { remainingSeconds, isExpired } = useTimer(deadline);
 
-  const { speak, speakNow, prefetch, stop } = useAudio();
+  const { speak, speakAsync, speakNow, prefetch, stop } = useAudio();
   const lastSpokenRef = useRef<string>("");
+  const timerWarnedRef = useRef(-1);
 
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -54,33 +58,42 @@ function PlayContent({ roomCode }: { roomCode: string }) {
   const [lastQuestionIndex, setLastQuestionIndex] = useState(-1);
   const [ready, setReady] = useState(false);
 
-  // Audio en mode remote (tous les joueurs entendent l'animateur)
+  // Audio remote : question, reveal, fin (intro geree dans RemoteView)
   useEffect(() => {
     if (!state) return;
     const { room, players, currentQuestion, revealData, scores, nextQuestion } = state;
     if (room.mode !== "remote") return;
+    if (room.status === "intro" || room.status === "waiting") return;
 
     const key = `${room.status}-${room.currentQuestionIndex}`;
     if (key === lastSpokenRef.current) return;
     lastSpokenRef.current = key;
 
-    if (room.status === "intro") {
-      speakNow(rulesIntro(players.map((p) => p.name)));
-      if (nextQuestion) prefetch(questionIntro(1, room.totalQuestions, nextQuestion.difficulty, nextQuestion.text));
-    } else if (room.status === "playing" && currentQuestion) {
+    if (room.status === "playing" && currentQuestion) {
       const qNum = room.currentQuestionIndex + 1;
       speakNow(questionIntro(qNum, room.totalQuestions, currentQuestion.difficulty, currentQuestion.text));
       if (nextQuestion) prefetch(questionIntro(qNum + 1, room.totalQuestions, nextQuestion.difficulty, nextQuestion.text));
     } else if (room.status === "reveal" && revealData && currentQuestion) {
-      speakNow(revealComment(currentQuestion.choices[revealData.correctIndex], revealData.explanation, revealData.playerResults));
-      if (nextQuestion) {
-        const nxt = room.currentQuestionIndex + 2;
-        prefetch(questionIntro(nxt, room.totalQuestions, nextQuestion.difficulty, nextQuestion.text));
+      const qNum = room.currentQuestionIndex + 1;
+      let text = revealComment(currentQuestion.choices[revealData.correctIndex], revealData.explanation, revealData.playerResults, players.map((p) => ({ name: p.name, streak: p.streak })));
+      if (qNum % 5 === 0 && players.length > 1) {
+        text += " " + leaderboardUpdate(scores.map((s) => ({ playerName: players.find((p) => p.id === s.playerId)?.name || "?", score: s.score })), qNum);
       }
+      speakNow(text);
+      if (nextQuestion) prefetch(questionIntro(qNum + 1, room.totalQuestions, nextQuestion.difficulty, nextQuestion.text));
     } else if (room.status === "finished" && scores.length > 0) {
       speakNow(gameOverComment(scores.map((s) => ({ playerName: players.find((p) => p.id === s.playerId)?.name || "?", score: s.score }))));
     }
-  }, [state, speak, speakNow, prefetch, roomCode]);
+  }, [state, speakNow, prefetch]);
+
+  // Timer warning 5s
+  useEffect(() => {
+    if (!state || state.room.status !== "playing" || state.room.mode !== "remote") return;
+    if (remainingSeconds === 5 && timerWarnedRef.current !== state.room.currentQuestionIndex) {
+      timerWarnedRef.current = state.room.currentQuestionIndex;
+      speak(timerWarning());
+    }
+  }, [remainingSeconds, state, speak]);
 
   useEffect(() => () => stop(), [stop]);
 
@@ -194,6 +207,10 @@ function PlayContent({ roomCode }: { roomCode: string }) {
         hostControl={hostControl}
         markReady={markReady}
         readyPlayerIds={state.readyPlayerIds ?? []}
+        speakAsync={speakAsync}
+        prefetch={prefetch}
+        stopAudio={stop}
+        nextQuestion={state.nextQuestion ?? null}
       />
     );
   }
@@ -290,7 +307,8 @@ function PlayContent({ roomCode }: { roomCode: string }) {
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
         <div className="text-7xl mb-4">{myRank === 1 ? "🏆" : myRank === 2 ? "🥈" : myRank === 3 ? "🥉" : "🎮"}</div>
         <p className="text-5xl font-bold mb-2">#{myRank}</p>
-        <p className="text-2xl text-gray-400 mb-8">{myScore?.score || 0} points</p>
+        <p className="text-2xl text-gray-400 mb-4">{myScore?.score || 0} points</p>
+        {myScore && (() => { const iq = estimateIQ(myScore.score); return (<div className="mb-6"><p className="text-gray-400 text-sm">QI logique</p><p className="text-3xl font-bold text-cyan-400">{iq}</p><p className="text-xs text-gray-300">{iqLabel(iq)}</p></div>); })()}
         <div className="w-full max-w-xs space-y-2">
           {scores.map((s, i) => {
             const p = players.find((pl) => pl.id === s.playerId);
@@ -321,6 +339,7 @@ function RemoteView({
   room, players, scores, currentQuestion, revealData, answeredPlayerIds,
   myId, myPlayer, isHost, roomCode, remainingSeconds, isExpired,
   selectedAnswer, submitError, handleAnswer, hostControl, markReady, readyPlayerIds,
+  speakAsync, prefetch, stopAudio, nextQuestion,
 }: {
   room: { status: string; currentQuestionIndex: number; totalQuestions: number; hostId: string; roomCode: string; questionDeadline: number; timeLimitSeconds: number };
   players: { id: string; name: string; avatar: string; score: number }[];
@@ -340,42 +359,90 @@ function RemoteView({
   hostControl: (action: "start" | "begin" | "next" | "end") => Promise<unknown>;
   markReady: () => Promise<unknown>;
   readyPlayerIds: string[];
+  speakAsync: (text: string) => Promise<void>;
+  prefetch: (text: string) => void;
+  stopAudio: () => void;
+  nextQuestion: { difficulty: number; text: string; time_limit: number } | null;
 }) {
-  const [introStep, setIntroStep] = useState(0);
+  const [introStep, setIntroStep] = useState(-1);
 
-  // Intro animation timer
+  // Intro async (synchronisee avec audio)
   useEffect(() => {
     if (room.status !== "intro") return;
-    setIntroStep(0);
-    const timers = [
-      setTimeout(() => setIntroStep(1), 500),
-      setTimeout(() => setIntroStep(2), 3000),
-      setTimeout(() => setIntroStep(3), 6000),
-      setTimeout(() => setIntroStep(4), 12000),
-      setTimeout(() => setIntroStep(5), 22000),
-      setTimeout(() => setIntroStep(6), 25000),
-      setTimeout(() => { if (isHost) hostControl("begin"); }, 28000),
-    ];
-    return () => timers.forEach(clearTimeout);
-  }, [room.status, isHost, hostControl]);
+    const cancelled = { current: false };
+    const segments = rulesIntroSegments(players.map((p) => p.name), players.length === 1);
+    segments.forEach((s) => prefetch(s.text));
+    if (nextQuestion) prefetch(questionIntro(1, room.totalQuestions, nextQuestion.difficulty, nextQuestion.text));
 
-  // INTRO remote
+    async function runIntro() {
+      for (let i = 0; i < segments.length; i++) {
+        if (cancelled.current) return;
+        setIntroStep(i);
+        await speakAsync(segments[i].text);
+      }
+      if (cancelled.current) return;
+      setIntroStep(segments.length);
+      await new Promise((r) => setTimeout(r, 500));
+      if (cancelled.current) return;
+      if (isHost) hostControl("begin");
+    }
+    runIntro();
+    return () => { cancelled.current = true; stopAudio(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room.status]);
+
+  // INTRO remote (synchronisee avec audio, 8 steps)
   if (room.status === "intro") {
+    const COLORS = ["from-blue-600 to-blue-500", "from-orange-600 to-orange-500", "from-green-600 to-green-500", "from-purple-600 to-purple-500"];
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-violet-950 via-indigo-950 to-black" />
-        <div className="relative z-10 flex flex-col items-center text-center max-w-lg">
-          <h1 className={`text-5xl font-bold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent transition-all duration-1000 ${introStep >= 1 ? "opacity-100 scale-100" : "opacity-0 scale-50"}`}>LOGIQUE</h1>
-          <p className={`text-lg text-gray-300 mt-3 transition-all duration-700 ${introStep >= 2 ? "opacity-100" : "opacity-0"}`}>100 questions. Du trivial a l&apos;impossible.</p>
-          <div className={`flex flex-wrap gap-2 justify-center mt-6 transition-all duration-700 ${introStep >= 3 ? "opacity-100" : "opacity-0"}`}>
+        <div className="relative z-10 flex flex-col items-center text-center max-w-lg w-full space-y-5">
+          {/* 0: Titre */}
+          <h1 className={`text-5xl font-bold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent transition-all duration-1000 ${introStep >= 0 ? "opacity-100 scale-100" : "opacity-0 scale-50"}`}>LOGIQUE</h1>
+
+          {/* 1: Joueurs */}
+          <div className={`flex flex-wrap gap-2 justify-center transition-all duration-700 ${introStep >= 1 ? "opacity-100" : "opacity-0"}`}>
             {players.map((p, i) => (<div key={p.id} className="px-4 py-2 rounded-xl bg-white/10 border border-white/20 font-bold animate-slide-up" style={{ animationDelay: `${i * 200}ms` }}>{p.avatar} {p.name}</div>))}
           </div>
-          <div className={`mt-6 space-y-2 w-full transition-all duration-700 ${introStep >= 4 ? "opacity-100" : "opacity-0"}`}>
-            {["⚡ Repondez vite", "📈 Niv.1=100pts → Niv.10=1000pts", "🏎️ Bonus vitesse", "❌ Erreur = 0 pts"].map((r, i) => (
-              <div key={i} className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-gray-300 animate-slide-up" style={{ animationDelay: `${i * 300}ms` }}>{r}</div>
-            ))}
+
+          {/* 2: Telephone */}
+          <div className={`p-4 rounded-xl bg-white/5 border border-white/10 w-full transition-all duration-700 ${introStep >= 2 ? "opacity-100" : "opacity-0"}`}>
+            <p className="text-gray-400 text-sm mb-3">Vos boutons de reponse :</p>
+            <div className="grid grid-cols-4 gap-2">
+              {["A", "B", "C", "D"].map((l, i) => (<div key={l} className={`h-12 rounded-lg bg-gradient-to-r ${COLORS[i]} flex items-center justify-center text-lg font-bold`}>{l}</div>))}
+            </div>
           </div>
-          {introStep >= 5 && <p className={`mt-8 text-5xl font-mono font-bold ${introStep >= 6 ? "text-green-400" : "text-yellow-400"} animate-pulse`}>{introStep >= 6 ? "C'est parti !" : "3... 2... 1..."}</p>}
+
+          {/* 3: Scoring */}
+          <div className={`w-full transition-all duration-700 ${introStep >= 3 ? "opacity-100" : "opacity-0"}`}>
+            <p className="text-gray-400 text-sm mb-2">Points par niveau</p>
+            <div className="flex items-end gap-0.5 justify-center h-20">
+              {Array.from({ length: 10 }, (_, i) => (<div key={i} className={`w-5 rounded-t ${i < 3 ? "bg-green-500" : i < 6 ? "bg-yellow-500" : i < 8 ? "bg-orange-500" : "bg-red-500"}`} style={{ height: `${(i + 1) * 7 + 5}px` }}><span className="text-[8px] text-white block text-center">{(i + 1) * 100}</span></div>))}
+            </div>
+          </div>
+
+          {/* 4: Vitesse */}
+          <div className={`flex items-center gap-4 transition-all duration-700 ${introStep >= 4 ? "opacity-100" : "opacity-0"}`}>
+            <span className="text-3xl">⚡</span>
+            <div className="text-left text-sm"><p className="font-bold text-yellow-400">Bonus vitesse</p><p className="text-gray-400">Vite = 100% | Lent = 25%</p></div>
+          </div>
+
+          {/* 5: Difficulte */}
+          <div className={`w-full transition-all duration-700 ${introStep >= 5 ? "opacity-100" : "opacity-0"}`}>
+            <div className="h-3 rounded-full overflow-hidden bg-white/10"><div className="h-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-600 w-full rounded-full" /></div>
+            <div className="flex justify-between text-[10px] text-gray-500 mt-1"><span>Trivial</span><span>Moyen</span><span>Impossible</span></div>
+          </div>
+
+          {/* 6: Bouton pret */}
+          <div className={`transition-all duration-700 ${introStep >= 6 ? "opacity-100" : "opacity-0"}`}>
+            <p className="text-gray-400 text-xs mb-2">Apres chaque question :</p>
+            <div className="px-8 py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 font-bold animate-pulse-glow inline-block">Je suis pret !</div>
+          </div>
+
+          {/* 7: Countdown */}
+          {introStep >= 7 && <p className="text-5xl font-mono font-bold text-yellow-400 animate-pulse mt-4">3... 2... 1...</p>}
+          {introStep >= 8 && <p className="text-4xl font-bold text-green-400">C&apos;EST PARTI !</p>}
         </div>
       </div>
     );
@@ -405,7 +472,7 @@ function RemoteView({
 
         <p className="text-gray-500 mb-4">{players.length} joueur{players.length > 1 ? "s" : ""}</p>
 
-        {isHost && players.length >= 2 && (
+        {isHost && players.length >= 1 && (
           <button onClick={() => hostControl("start")}
             className="px-10 py-4 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 text-xl font-bold hover:from-violet-500 hover:to-indigo-500 transition-all animate-pulse-glow">
             Lancer la partie !
@@ -609,6 +676,15 @@ function RemoteView({
             })}
           </div>
         )}
+
+        {/* QI */}
+        {myScore && (() => { const iq = estimateIQ(myScore.score); return (
+          <div className="mt-4 text-center">
+            <p className="text-gray-400 text-sm">QI logique estime</p>
+            <p className="text-4xl font-bold text-cyan-400">{iq}</p>
+            <p className="text-sm text-gray-300">{iqLabel(iq)}</p>
+          </div>
+        ); })()}
 
         <button onClick={() => window.location.href = "/"} className="mt-6 px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 font-bold transition">
           Nouvelle partie
