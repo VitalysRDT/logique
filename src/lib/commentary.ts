@@ -1,12 +1,12 @@
 import { estimateIQ, iqLabel } from "./scoring";
 
-const DIFFICULTY_NAMES = ["", "trivial", "facile", "facile plus", "moyen moins", "moyen", "moyen plus", "difficile", "tres difficile", "expert", "impossible"];
+const DIFFICULTY_NAMES = ["", "trivial", "facile", "facile plus", "moyen moins", "moyen", "moyen plus", "difficile", "très difficile", "expert", "impossible"];
 
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// === INTRO SEGMENTEE ===
+// === INTRO SEGMENTÉE ===
 
 export interface IntroSegment {
   key: string;
@@ -21,39 +21,39 @@ export function rulesIntroSegments(playerNames: string[], isSolo: boolean): Intr
   return [
     {
       key: "title",
-      text: "Bonsoir a tous ! Je suis Benoit, votre animateur pour ce soir. Bienvenue dans Logique, le jeu qui va mettre vos cerveaux a rude epreuve ! Vous etes prets pour un voyage au coeur de la logique pure ?",
+      text: "Bonsoir à tous ! Je suis Benoît, votre animateur pour ce soir. Bienvenue dans Logique, le jeu qui va mettre vos cerveaux à rude épreuve ! Vous êtes prêts pour un voyage au cœur de la logique pure ?",
     },
     {
       key: "players",
       text: isSolo
-        ? `Ce soir, ${playerNames[0]} va tenter le defi en solo ! 100 questions de logique, du niveau trivial jusqu'au niveau impossible. Est-ce que vous avez ce qu'il faut ? On va le decouvrir !`
+        ? `Ce soir, ${playerNames[0]} va tenter le défi en solo ! 100 questions de logique, du niveau trivial jusqu'au niveau impossible. Est-ce que vous avez ce qu'il faut ? On va le découvrir !`
         : `Ce soir, nous avons ${namesList} qui vont s'affronter sur 100 questions de logique pure. Que le meilleur cerveau gagne !`,
     },
     {
       key: "phone",
-      text: "Alors, comment ca marche ? Regardez votre telephone. Vous allez voir apparaitre 4 gros boutons de couleur. Bleu pour la reponse A, orange pour B, vert pour C, et violet pour D. Ce sont vos buzers ! Quand une question s'affiche sur l'ecran, vous appuyez sur le bouton de votre choix. Simple, non ?",
+      text: "Alors, comment ça marche ? Regardez votre téléphone. Vous allez voir apparaître 4 gros boutons de couleur. Bleu pour la réponse A, orange pour B, vert pour C, et violet pour D. Ce sont vos buzers ! Quand une question s'affiche sur l'écran, vous appuyez sur le bouton de votre choix. Simple, non ?",
     },
     {
       key: "scoring",
-      text: "Parlons des points ! Le systeme est simple. Plus la question est difficile, plus elle rapporte. Une question de niveau 1, c'est facile, ca donne 100 points maximum. Mais une question de niveau 10, attention, c'est 1000 points ! Les gros scores se font sur les questions difficiles.",
+      text: "Parlons des points ! Le système est simple. Plus la question est difficile, plus elle rapporte. Une question de niveau 1, c'est facile, ça donne 100 points maximum. Mais une question de niveau 10, attention, c'est 1000 points ! Les gros scores se font sur les questions difficiles.",
     },
     {
       key: "speed",
-      text: "Et surtout, la vitesse compte ! Plus vous repondez vite, plus votre bonus est eleve. Si vous repondez instantanement, vous gagnez le maximum. Si vous attendez jusqu'a la derniere seconde, vous ne gagnez que 25 pour cent des points. Mais attention, une mauvaise reponse, c'est zero point. Alors reflechissez, mais ne trainz pas !",
+      text: "Et surtout, la vitesse compte ! Plus vous répondez vite, plus votre bonus est élevé. Si vous répondez instantanément, vous gagnez le maximum. Si vous attendez jusqu'à la dernière seconde, vous ne gagnez que 25 pour cent des points. Mais attention, une mauvaise réponse, c'est zéro point. Alors réfléchissez, mais ne traînez pas !",
     },
     {
       key: "difficulty",
-      text: "On va commencer tranquillement avec des questions de niveau trivial, pour echauffer les neurones. Mais ne vous endormez pas ! Ca va monter progressivement, et les dernieres questions sont de niveau impossible. Meme des mathematiciens professionnels s'y cassent les dents !",
+      text: "On va commencer tranquillement avec des questions de niveau trivial, pour échauffer les neurones. Mais ne vous endormez pas ! Ça va monter progressivement, et les dernières questions sont de niveau impossible. Même des mathématiciens professionnels s'y cassent les dents !",
     },
     {
       key: "ready",
-      text: "A la fin de chaque question, je vous donnerai la bonne reponse et l'explication. Prenez le temps de comprendre. Et quand vous etes prets pour la suite, appuyez sur le bouton vert Je suis pret sur votre telephone. La question suivante ne commencera que quand tout le monde sera pret.",
+      text: "À la fin de chaque question, je vous donnerai la bonne réponse et l'explication. Prenez le temps de comprendre. Et quand vous êtes prêts pour la suite, appuyez sur le bouton vert « Je suis prêt » sur votre téléphone. La question suivante ne commencera que quand tout le monde sera prêt.",
     },
     {
       key: "countdown",
       text: isSolo
-        ? `Alors ${playerNames[0]}, pret a relever le defi ? 3, 2, 1, c'est parti !`
-        : `Est-ce que tout le monde est pret ? Alors, 3, 2, 1, c'est parti !`,
+        ? `Alors ${playerNames[0]}, prêt à relever le défi ? 3, 2, 1, c'est parti !`
+        : `Est-ce que tout le monde est prêt ? Alors, 3, 2, 1, c'est parti !`,
     },
   ];
 }
@@ -72,23 +72,23 @@ export function questionIntro(questionNum: number, totalQuestions: number, diffi
   let intro = "";
 
   if (questionNum === 1) {
-    intro = "Premiere question pour se mettre en jambes. Niveau trivial. ";
+    intro = "Première question pour se mettre en jambes. Niveau trivial. ";
   } else if (questionNum === 10) {
-    intro = "Question 10 ! On accelere. ";
+    intro = "Question 10 ! On accélère. ";
   } else if (questionNum === 25) {
     intro = "Question 25, le quart du chemin ! ";
   } else if (questionNum === 50) {
-    intro = "La moitie ! Question 50 ! Ca ne rigole plus. ";
+    intro = "La moitié ! Question 50 ! Ça ne rigole plus. ";
   } else if (questionNum === 75) {
     intro = "Question 75. Les trois quarts ! Seuls les vrais logiciens survivent. ";
   } else if (questionNum === 90) {
     intro = "Question 90 ! Zone rouge. Bonne chance. ";
   } else if (questionNum === 100) {
-    intro = "Derniere question ! La centieme ! Niveau impossible ! ";
+    intro = "Dernière question ! La centième ! Niveau impossible ! ";
   } else if (difficulty >= 9) {
     intro = pick([`Question ${questionNum}. Niveau ${diffName}. Accrochez-vous. `, `Attention, question ${questionNum}. Niveau ${diffName}. `]);
   } else if (difficulty >= 7) {
-    intro = pick([`Question ${questionNum}. Niveau ${diffName}. `, `Question ${questionNum}. Ca devient serieux. `]);
+    intro = pick([`Question ${questionNum}. Niveau ${diffName}. `, `Question ${questionNum}. Ça devient sérieux. `]);
   } else if (difficulty >= 5) {
     intro = pick([`Question ${questionNum}. `, `On continue, question ${questionNum}. `]);
   } else {
@@ -102,7 +102,7 @@ export function questionIntro(questionNum: number, totalQuestions: number, diffi
 
 export function timerWarning(): string {
   return pick([
-    "Plus que 5 secondes ! Depechez-vous !",
+    "Plus que 5 secondes ! Dépêchez-vous !",
     "5 secondes ! Il faut buzzer maintenant !",
     "Allez, vite ! Plus que 5 secondes !",
   ]);
@@ -111,10 +111,10 @@ export function timerWarning(): string {
 // === STREAK ===
 
 export function streakComment(playerName: string, streak: number): string {
-  if (streak === 3) return `${playerName}, 3 bonnes reponses d'affilee !`;
-  if (streak === 5) return `${playerName}, 5 d'affilee ! Impressionnant !`;
+  if (streak === 3) return `${playerName}, 3 bonnes réponses d'affilée !`;
+  if (streak === 5) return `${playerName}, 5 d'affilée ! Impressionnant !`;
   if (streak === 10) return `${playerName}, 10 sans erreur ! Incroyable !`;
-  if (streak >= 15) return `${playerName}, ${streak} d'affilee ! Extraterrestre !`;
+  if (streak >= 15) return `${playerName}, ${streak} d'affilée ! Extraterrestre !`;
   return "";
 }
 
@@ -124,14 +124,14 @@ export function leaderboardUpdate(
   scores: { playerName: string; score: number }[],
   questionNum: number
 ): string {
-  if (scores.length <= 1) return `Apres ${questionNum} questions, score : ${scores[0]?.score || 0} points.`;
+  if (scores.length <= 1) return `Après ${questionNum} questions, score : ${scores[0]?.score || 0} points.`;
   const leader = scores[0];
   const second = scores[1];
   const gap = leader.score - second.score;
   if (gap <= 100) {
-    return `Apres ${questionNum} questions, c'est tres serre ! ${leader.playerName} mene avec seulement ${gap} points d'avance sur ${second.playerName} !`;
+    return `Après ${questionNum} questions, c'est très serré ! ${leader.playerName} mène avec seulement ${gap} points d'avance sur ${second.playerName} !`;
   }
-  return `Apres ${questionNum} questions, ${leader.playerName} est en tete avec ${leader.score} points.`;
+  return `Après ${questionNum} questions, ${leader.playerName} est en tête avec ${leader.score} points.`;
 }
 
 // === REVEAL ===
@@ -142,16 +142,16 @@ export function revealComment(
   playerResults: { playerName: string; correct: boolean; pointsEarned: number; previousRank: number; newRank: number }[],
   allPlayers?: { name: string; streak: number }[]
 ): string {
-  let comment = `La bonne reponse etait : ${correctAnswer}. `;
+  let comment = `La bonne réponse était : ${correctAnswer}. `;
 
   // Solo
   if (playerResults.length === 1) {
     const r = playerResults[0];
     if (r.correct) {
-      comment += pick([`Bravo ${r.playerName}, bonne reponse !`, `${r.playerName} a trouve ! Bien joue !`]);
+      comment += pick([`Bravo ${r.playerName}, bonne réponse !`, `${r.playerName} a trouvé ! Bien joué !`]);
       if (r.pointsEarned > 0) comment += ` ${r.pointsEarned} points.`;
     } else {
-      comment += pick([`Dommage ${r.playerName}, ce n'etait pas ca.`, `Incorrect. Pas de panique, on continue !`]);
+      comment += pick([`Dommage ${r.playerName}, ce n'était pas ça.`, `Incorrect. Pas de panique, on continue !`]);
     }
     comment += " " + explanation;
     return comment;
@@ -161,23 +161,23 @@ export function revealComment(
   const correct = playerResults.filter((r) => r.correct);
 
   if (correct.length === playerResults.length) {
-    comment += pick(["Bravo a tous, tout le monde a trouve !", "Impressionnant, sans faute !"]);
+    comment += pick(["Bravo à tous, tout le monde a trouvé !", "Impressionnant, sans faute !"]);
   } else if (correct.length === 0) {
-    comment += pick(["Personne n'a trouve ! C'etait piegeant.", "Zero bonne reponse ! Celle-la etait vicieuse."]);
+    comment += pick(["Personne n'a trouvé ! C'était piégeant.", "Zéro bonne réponse ! Celle-là était vicieuse."]);
   } else if (correct.length === 1) {
-    comment += `Seul ${correct[0].playerName} a trouve ! Chapeau !`;
+    comment += `Seul ${correct[0].playerName} a trouvé ! Chapeau !`;
   } else {
-    comment += `Bravo a ${correct.map((r) => r.playerName).join(" et ")} !`;
+    comment += `Bravo à ${correct.map((r) => r.playerName).join(" et ")} !`;
   }
 
   // Changements de classement
   const newLeader = playerResults.find((r) => r.newRank === 1 && r.previousRank > 1);
   if (newLeader) {
-    comment += ` Et ${newLeader.playerName} prend la tete !`;
+    comment += ` Et ${newLeader.playerName} prend la tête !`;
   }
   const bigRise = playerResults.find((r) => r.previousRank - r.newRank >= 2);
   if (bigRise && bigRise !== newLeader) {
-    comment += ` Belle remontee de ${bigRise.playerName} !`;
+    comment += ` Belle remontée de ${bigRise.playerName} !`;
   }
 
   // Streaks
@@ -205,15 +205,15 @@ export function revealComment(
 export function gameOverComment(
   scores: { playerName: string; score: number }[]
 ): string {
-  if (scores.length === 0) return "C'est termine !";
+  if (scores.length === 0) return "C'est terminé !";
 
   // Solo
   if (scores.length === 1) {
     const iq = estimateIQ(scores[0].score);
     const label = iqLabel(iq);
-    return `C'est termine ! ${scores[0].playerName}, vous avez obtenu ${scores[0].score} points en solo ! `
-      + `Votre QI logique est estime a ${iq}. ${label} ! `
-      + `Merci d'avoir joue a Logique !`;
+    return `C'est terminé ! ${scores[0].playerName}, vous avez obtenu ${scores[0].score} points en solo ! `
+      + `Votre QI logique est estimé à ${iq}. ${label} ! `
+      + `Merci d'avoir joué à Logique !`;
   }
 
   // Multi
@@ -222,17 +222,17 @@ export function gameOverComment(
   const winnerIQ = estimateIQ(winner.score);
 
   let comment = pick([
-    `Et c'est termine ! Le grand vainqueur est ${winner.playerName} avec ${winner.score} points !`,
+    `Et c'est terminé ! Le grand vainqueur est ${winner.playerName} avec ${winner.score} points !`,
     `Fin de la partie ! ${winner.playerName} remporte la victoire avec ${winner.score} points !`,
   ]);
 
   const gap = winner.score - second.score;
   if (gap <= 200) {
-    comment += ` C'etait serre ! Seulement ${gap} points d'ecart avec ${second.playerName} !`;
+    comment += ` C'était serré ! Seulement ${gap} points d'écart avec ${second.playerName} !`;
   }
 
-  comment += ` Le QI logique de ${winner.playerName} est estime a ${winnerIQ}. ${iqLabel(winnerIQ)} !`;
-  comment += " Bravo a tous et merci d'avoir joue a Logique !";
+  comment += ` Le QI logique de ${winner.playerName} est estimé à ${winnerIQ}. ${iqLabel(winnerIQ)} !`;
+  comment += " Bravo à tous et merci d'avoir joué à Logique !";
 
   return comment;
 }

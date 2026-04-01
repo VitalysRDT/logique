@@ -1,47 +1,44 @@
 import { NextResponse } from "next/server";
 
-const CARTESIA_API_KEY = process.env.CARTESIA_API_KEY;
-const VOICE_ID = "5def377d-908b-4540-8bd7-3c968fcae351"; // Benoît - Methodical Moderator (voix FR native)
+const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+const VOICE_ID = "GBv7mTt0atIp3Br8iCZE"; // Thomas — voix FR masculine native
 
 export async function POST(request: Request) {
   try {
-    if (!CARTESIA_API_KEY) {
-      return NextResponse.json({ error: "TTS non configure" }, { status: 500 });
+    if (!ELEVENLABS_API_KEY) {
+      return NextResponse.json({ error: "TTS non configuré" }, { status: 500 });
     }
 
-    const { text, speed, emotion } = await request.json();
+    const { text } = await request.json();
 
-    if (!text || typeof text !== "string" || text.length > 2000) {
-      return NextResponse.json({ error: "Texte invalide (max 2000 car)" }, { status: 400 });
+    if (!text || typeof text !== "string" || text.length > 3000) {
+      return NextResponse.json({ error: "Texte invalide (max 3000 car)" }, { status: 400 });
     }
 
-    const res = await fetch("https://api.cartesia.ai/tts/bytes", {
-      method: "POST",
-      headers: {
-        "X-API-Key": CARTESIA_API_KEY,
-        "Cartesia-Version": "2025-04-16",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model_id: "sonic-turbo",
-        transcript: text,
-        voice: { mode: "id", id: VOICE_ID },
-        output_format: {
-          container: "mp3",
-          bit_rate: 128000,
-          sample_rate: 44100,
+    const res = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
+      {
+        method: "POST",
+        headers: {
+          "xi-api-key": ELEVENLABS_API_KEY,
+          "Content-Type": "application/json",
         },
-        language: "fr",
-        generation_config: {
-          speed: speed || 1.05,
-          emotion: emotion || undefined,
-        },
-      }),
-    });
+        body: JSON.stringify({
+          text,
+          model_id: "eleven_multilingual_v2",
+          voice_settings: {
+            stability: 0.4,
+            similarity_boost: 0.8,
+            style: 0.5,
+            use_speaker_boost: true,
+          },
+        }),
+      }
+    );
 
     if (!res.ok) {
       const err = await res.text();
-      console.error("Cartesia error:", res.status, err);
+      console.error("ElevenLabs error:", res.status, err);
       return NextResponse.json({ error: "TTS error" }, { status: 502 });
     }
 
