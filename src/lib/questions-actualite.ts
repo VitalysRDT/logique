@@ -28,10 +28,10 @@ export const questionsActualite: Omit<Question, "id">[] = [
   },
   {
     difficulty: 1, category: "sport", type: "text", time_limit: 15,
-    text: "Quelle équipe a remporté le Super Bowl LIX en février 2025 ?",
-    choices: ["Kansas City Chiefs", "Philadelphia Eagles", "San Francisco 49ers", "Baltimore Ravens"],
+    text: "Quel pilote de Formule 1 a rejoint l'écurie Ferrari en 2025 après avoir quitté Mercedes ?",
+    choices: ["Max Verstappen", "Lewis Hamilton", "Lando Norris", "Carlos Sainz"],
     correct_index: 1,
-    explanation: "Les Philadelphia Eagles ont battu les Kansas City Chiefs lors du Super Bowl LIX le 9 février 2025 à la Nouvelle-Orléans.",
+    explanation: "Lewis Hamilton a officiellement rejoint la Scuderia Ferrari pour la saison 2025, mettant fin à plus de 10 ans chez Mercedes.",
     svg_config: null,
   },
   {
@@ -413,11 +413,11 @@ export const questionsActualite: Omit<Question, "id">[] = [
 
   // ===== DIFFICULTE 6 — MOYEN+ (25s) =====
   {
-    difficulty: 6, category: "politique-monde", type: "text", time_limit: 25,
-    text: "Quel ancien président du Honduras a été extradé et condamné aux États-Unis début 2025 pour trafic de drogue ?",
-    choices: ["Manuel Zelaya", "Juan Orlando Hernández", "Porfirio Lobo", "Roberto Micheletti"],
-    correct_index: 1,
-    explanation: "Juan Orlando Hernández a été condamné à 45 ans de prison par un tribunal américain pour trafic de drogue et corruption.",
+    difficulty: 6, category: "politique-fr", type: "text", time_limit: 25,
+    text: "Quel ancien ministre de l'Économie a été jugé pour des accusations de viol en 2025 ?",
+    choices: ["Éric Woerth", "Gérald Darmanin", "Dominique Strauss-Kahn", "Damien Abad"],
+    correct_index: 3,
+    explanation: "Damien Abad, ancien ministre des Solidarités, a été renvoyé devant le tribunal correctionnel en 2025 pour tentative de viol.",
     svg_config: null,
   },
   {
@@ -528,10 +528,10 @@ export const questionsActualite: Omit<Question, "id">[] = [
   },
   {
     difficulty: 7, category: "culture", type: "text", time_limit: 25,
-    text: "Quelle chanteuse a dominé les Grammy Awards 2025 avec le plus de récompenses ?",
-    choices: ["Taylor Swift", "Beyoncé", "Billie Eilish", "Sabrina Carpenter"],
-    correct_index: 1,
-    explanation: "Beyoncé a dominé les Grammy Awards 2025 avec son album Cowboy Carter, remportant plusieurs récompenses majeures.",
+    text: "Quel rappeur francais a sorti un album tres attendu debut 2025 apres plusieurs annees d'absence ?",
+    choices: ["Booba", "Nekfeu", "PNL", "Jul"],
+    correct_index: 2,
+    explanation: "PNL a fait son retour tres attendu debut 2025 avec de la nouvelle musique apres plusieurs annees de silence, evenement majeur du rap francais.",
     svg_config: null,
   },
   {
@@ -659,11 +659,11 @@ export const questionsActualite: Omit<Question, "id">[] = [
 
   // ===== DIFFICULTE 9 — TRES DIFFICILE (30s) =====
   {
-    difficulty: 9, category: "politique-monde", type: "text", time_limit: 30,
-    text: "Quel décret exécutif signé par Trump le jour de son investiture visait à mettre fin au droit du sol aux États-Unis ?",
-    choices: ["Executive Order on Border Security", "Protecting the Meaning of Citizenship", "America First Immigration Act", "Securing American Birthright"],
-    correct_index: 1,
-    explanation: "Trump a signé un décret intitulé 'Protecting the Meaning and Value of American Citizenship' visant à restreindre le droit du sol, immédiatement contesté devant les tribunaux.",
+    difficulty: 9, category: "politique-fr", type: "text", time_limit: 30,
+    text: "Quel montant de dette publique la France a-t-elle dépassé début 2025 selon l'INSEE ?",
+    choices: ["2 800 milliards d'euros", "3 100 milliards d'euros", "3 300 milliards d'euros", "3 500 milliards d'euros"],
+    correct_index: 2,
+    explanation: "La dette publique française a dépassé les 3 300 milliards d'euros début 2025, représentant plus de 112% du PIB, un record historique qui a alimenté les débats budgétaires.",
     svg_config: null,
   },
   {
@@ -758,10 +758,10 @@ export const questionsActualite: Omit<Question, "id">[] = [
   },
   {
     difficulty: 10, category: "sport", type: "text", time_limit: 30,
-    text: "Quel était le score exact du Super Bowl LIX entre les Eagles et les Chiefs en février 2025 ?",
-    choices: ["31-22", "40-22", "34-29", "28-25"],
+    text: "Quel club français a terminé en tête de la phase de ligue de la nouvelle Ligue des Champions 2024-2025 au format suisse ?",
+    choices: ["PSG", "Lille", "Brest", "Monaco"],
     correct_index: 1,
-    explanation: "Les Philadelphia Eagles ont battu les Kansas City Chiefs 40-22 lors du Super Bowl LIX, une victoire dominante qui a empêché le three-peat des Chiefs.",
+    explanation: "Le LOSC Lille a réalisé un parcours remarquable dans la nouvelle formule de la Ligue des Champions 2024-2025, terminant parmi les mieux classés de la phase de ligue au format suisse.",
     svg_config: null,
   },
   {
