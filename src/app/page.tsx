@@ -10,7 +10,7 @@ type Mode = "home" | "party-create" | "remote-create" | "remote-join";
 
 export default function Home() {
   const router = useRouter();
-  const [showKaraoke, setShowKaraoke] = useState(true);
+  const [showKaraoke, setShowKaraoke] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState<QuizType | null>(null);
   const [mode, setMode] = useState<Mode>("home");
   const [name, setName] = useState("");
@@ -19,6 +19,16 @@ export default function Home() {
   const [error, setError] = useState("");
 
   const quizConfig = selectedQuiz ? getQuizConfig(selectedQuiz) : null;
+
+  function selectQuiz(quiz: QuizType) {
+    const config = getQuizConfig(quiz);
+    if (config.hasKaraoke) {
+      setSelectedQuiz(quiz);
+      setShowKaraoke(true);
+    } else {
+      setSelectedQuiz(quiz);
+    }
+  }
 
   async function handleCreate(gameMode: "party" | "remote") {
     if (!name.trim()) return setError("Entrez votre nom");
@@ -79,7 +89,7 @@ export default function Home() {
     }
   }
 
-  // Karaoke plein ecran au demarrage
+  // Karaoke (uniquement pour les quiz qui en ont un)
   if (showKaraoke) {
     return <KaraokeFullscreen onSkip={() => setShowKaraoke(false)} />;
   }
@@ -90,17 +100,21 @@ export default function Home() {
       <div className="min-h-dvh flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           <div className="text-center mb-10">
-            <h1 className="font-display text-5xl font-bold tracking-tight bg-gradient-to-r from-violet-400 via-cyan-300 to-violet-400 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%]">
-              CHOISISSEZ VOTRE QUIZ
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm text-[var(--text-secondary)] mb-6 animate-fade-in">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              Quiz multijoueur
+            </div>
+            <h1 className="font-display text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-violet-400 via-cyan-300 to-emerald-400 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%]">
+              QUIZZARENA
             </h1>
             <p className="mt-3 text-[var(--text-secondary)] text-lg">
-              S&eacute;lectionnez un jeu pour commencer
+              Choisissez votre d&eacute;fi
             </p>
           </div>
 
           <div className="space-y-4 animate-slide-up">
             {/* Logique */}
-            <button onClick={() => setSelectedQuiz("logique")}
+            <button onClick={() => selectQuiz("logique")}
               className="w-full group relative overflow-hidden rounded-2xl glass-strong p-6 text-left transition-all hover:border-violet-500/30">
               <div className="absolute top-0 right-0 w-40 h-40 bg-violet-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-violet-500/20 transition" />
               <div className="relative">
@@ -116,7 +130,7 @@ export default function Home() {
             </button>
 
             {/* Actualite 2025 */}
-            <button onClick={() => setSelectedQuiz("actualite")}
+            <button onClick={() => selectQuiz("actualite")}
               className="w-full group relative overflow-hidden rounded-2xl glass-strong p-6 text-left transition-all hover:border-amber-500/30">
               <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-amber-500/20 transition" />
               <div className="relative">
@@ -132,7 +146,7 @@ export default function Home() {
             </button>
 
             {/* Rejoindre */}
-            <button onClick={() => { setSelectedQuiz("logique"); setMode("remote-join"); }}
+            <button onClick={() => setMode("remote-join")}
               className="w-full rounded-2xl glass p-4 text-center text-[var(--text-secondary)] hover:text-white hover:border-white/20 transition-all">
               Rejoindre une partie
             </button>
@@ -141,6 +155,28 @@ export default function Home() {
           <p className="text-center text-[var(--text-muted)] text-xs mt-6">
             1 &agrave; 8 joueurs &middot; Navigateur web &middot; Aucune installation
           </p>
+
+          {/* JOIN direct depuis l'accueil */}
+          {mode === "remote-join" && !selectedQuiz && (
+            <div className="mt-6 space-y-4 animate-slide-up">
+              <div className="h-px bg-white/10" />
+              <input type="text" placeholder="Votre nom" value={name} onChange={(e) => setName(e.target.value)} maxLength={20}
+                className="w-full px-5 py-4 rounded-xl glass text-lg placeholder:text-[var(--text-muted)] focus:outline-none focus:border-cyan-500/50 transition" autoFocus />
+              <input type="text" placeholder="Code (ex: BXKF)" value={roomCode} onChange={(e) => setRoomCode(e.target.value.toUpperCase())} onKeyDown={(e) => e.key === "Enter" && handleJoin()} maxLength={4}
+                className="w-full px-5 py-4 rounded-xl glass text-2xl text-center tracking-[0.4em] font-mono-game uppercase placeholder:text-[var(--text-muted)] placeholder:tracking-normal placeholder:text-lg focus:outline-none focus:border-cyan-500/50 transition" />
+              <button onClick={handleJoin} disabled={loading}
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-lg font-bold disabled:opacity-50 transition-all btn-glow">
+                {loading ? "Connexion..." : "Rejoindre"}
+              </button>
+              <button onClick={() => setMode("home")} className="w-full py-3 text-[var(--text-muted)] hover:text-white transition text-sm">Retour</button>
+            </div>
+          )}
+
+          {error && (
+            <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-center text-red-400 text-sm animate-slide-up">
+              {error}
+            </div>
+          )}
         </div>
       </div>
     );

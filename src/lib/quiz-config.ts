@@ -13,6 +13,7 @@ export interface QuizConfig {
   badgeText: string;
   metricName: string;
   hostGameName: string;
+  hasKaraoke: boolean;
 }
 
 const CONFIGS: Record<QuizType, QuizConfig> = {
@@ -29,6 +30,7 @@ const CONFIGS: Record<QuizType, QuizConfig> = {
     badgeText: "100 questions de logique",
     metricName: "QI logique",
     hostGameName: "Logique",
+    hasKaraoke: true,
   },
   actualite: {
     id: "actualite",
@@ -43,6 +45,7 @@ const CONFIGS: Record<QuizType, QuizConfig> = {
     badgeText: "100 questions sur l\u2019actu 2025",
     metricName: "Niveau d\u2019expertise",
     hostGameName: "Actualit\u00e9 2025",
+    hasKaraoke: false,
   },
 };
 
