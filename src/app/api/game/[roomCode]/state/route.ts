@@ -252,6 +252,7 @@ function buildRoom(stateRaw: Record<string, unknown>, version: number | null) {
     roomCode: stateRaw.roomCode,
     hostId: stateRaw.hostId,
     mode: (stateRaw.mode as string) || "party",
+    quizType: (stateRaw.quizType as string) || "logique",
     status: stateRaw.status,
     currentQuestionIndex: Number(stateRaw.currentQuestionIndex),
     totalQuestions: Number(stateRaw.totalQuestions),

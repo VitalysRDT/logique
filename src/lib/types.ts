@@ -1,3 +1,5 @@
+export type QuizType = "logique" | "actualite";
+
 export interface Question {
   id: number;
   difficulty: number;
@@ -30,6 +32,7 @@ export interface RoomState {
   roomCode: string;
   hostId: string;
   mode: "party" | "remote";
+  quizType: QuizType;
   status: "waiting" | "intro" | "playing" | "reveal" | "leaderboard" | "finished";
   currentQuestionIndex: number;
   questionIds: number[];

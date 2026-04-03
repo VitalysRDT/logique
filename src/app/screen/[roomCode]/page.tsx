@@ -7,7 +7,9 @@ import { useTimer } from "@/hooks/useTimer";
 import { useAudio } from "@/hooks/useAudio";
 import { QRCodeSVG } from "qrcode.react";
 import { rulesIntroSegments, questionIntro, revealComment, gameOverComment, timerWarning, leaderboardUpdate } from "@/lib/commentary";
-import { estimateIQ, iqLabel } from "@/lib/scoring";
+import { getEndGameMetric } from "@/lib/scoring";
+import { getQuizConfig } from "@/lib/quiz-config";
+import type { QuizType } from "@/lib/types";
 
 const ANSWER_COLORS = ["from-blue-600 to-blue-500", "from-orange-600 to-orange-500", "from-green-600 to-green-500", "from-purple-600 to-purple-500"];
 const ANSWER_LABELS = ["A", "B", "C", "D"];
@@ -47,13 +49,13 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
     if (!state || state.room.status !== "intro") return;
     const cancelled = { current: false };
 
-    const segments = rulesIntroSegments(state.players.map((p) => p.name), state.players.length === 1);
+    const segments = rulesIntroSegments(state.players.map((p) => p.name), state.players.length === 1, state.room.quizType as QuizType);
 
     // Prefetch tous les segments en parallele
     segments.forEach((s) => prefetch(s.text));
     // Prefetch Q1
     if (state.nextQuestion) {
-      prefetch(questionIntro(1, state.room.totalQuestions, state.nextQuestion.difficulty, state.nextQuestion.text));
+      prefetch(questionIntro(1, state.room.totalQuestions, state.nextQuestion.difficulty, state.nextQuestion.text, state.room.quizType as QuizType));
     }
 
     async function runIntro() {
@@ -84,10 +86,11 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
     if (room.status === "intro" || room.status === "waiting") return;
     lastSpokenRef.current = key;
 
+    const qt = room.quizType as QuizType;
     if (room.status === "playing" && currentQuestion) {
       const qNum = room.currentQuestionIndex + 1;
-      speakNow(questionIntro(qNum, room.totalQuestions, currentQuestion.difficulty, currentQuestion.text));
-      if (nextQuestion) prefetch(questionIntro(qNum + 1, room.totalQuestions, nextQuestion.difficulty, nextQuestion.text));
+      speakNow(questionIntro(qNum, room.totalQuestions, currentQuestion.difficulty, currentQuestion.text, qt));
+      if (nextQuestion) prefetch(questionIntro(qNum + 1, room.totalQuestions, nextQuestion.difficulty, nextQuestion.text, qt));
     } else if (room.status === "reveal" && revealData && currentQuestion) {
       const correctAnswer = currentQuestion.choices[revealData.correctIndex];
       const qNum = room.currentQuestionIndex + 1;
@@ -96,9 +99,9 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
         text += " " + leaderboardUpdate(scores.map((s) => ({ playerName: players.find((p) => p.id === s.playerId)?.name || "?", score: s.score })), qNum);
       }
       speakNow(text);
-      if (nextQuestion) prefetch(questionIntro(qNum + 1, room.totalQuestions, nextQuestion.difficulty, nextQuestion.text));
+      if (nextQuestion) prefetch(questionIntro(qNum + 1, room.totalQuestions, nextQuestion.difficulty, nextQuestion.text, qt));
     } else if (room.status === "finished" && scores.length > 0) {
-      speakNow(gameOverComment(scores.map((s) => ({ playerName: players.find((p) => p.id === s.playerId)?.name || "?", score: s.score }))));
+      speakNow(gameOverComment(scores.map((s) => ({ playerName: players.find((p) => p.id === s.playerId)?.name || "?", score: s.score })), qt));
     }
   }, [state, speakNow, prefetch, speak]);
 
@@ -114,7 +117,7 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
   // Prefetch rules en lobby
   useEffect(() => {
     if (!state || state.room.status !== "waiting" || state.players.length < 1) return;
-    const segs = rulesIntroSegments(state.players.map((p) => p.name), state.players.length === 1);
+    const segs = rulesIntroSegments(state.players.map((p) => p.name), state.players.length === 1, state.room.quizType as QuizType);
     segs.forEach((s) => prefetch(s.text));
   }, [state?.players?.length, state?.room?.status, prefetch, state]);
 
@@ -141,12 +144,13 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
 
   const { room, players, scores, currentQuestion, revealData, answeredPlayerIds } = state;
   const allPlayersHaveQR = players.every((p) => playerCredentials[p.id]);
+  const qConfig = getQuizConfig((room.quizType as QuizType) || "logique");
 
   // === LOBBY ===
   if (room.status === "waiting") {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-8">
-        <h1 className="text-5xl font-bold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent mb-8">LOGIQUE</h1>
+        <h1 className={`text-5xl font-bold bg-gradient-to-r ${qConfig.gradientFrom} ${qConfig.gradientVia} ${qConfig.gradientTo} bg-clip-text text-transparent mb-8`}>{qConfig.name}</h1>
         <div className="w-full max-w-2xl mb-8">
           <div className="flex gap-3">
             <input type="text" placeholder="Nom du joueur..." value={newPlayerName} onChange={(e) => setNewPlayerName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleAddPlayer()} maxLength={20} className="flex-1 px-5 py-4 rounded-xl bg-white/10 border border-white/20 text-lg placeholder:text-gray-500 focus:outline-none focus:border-violet-500" autoFocus />
@@ -180,8 +184,8 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
         <div className="relative z-10 flex flex-col items-center text-center max-w-3xl w-full">
 
           {/* Step 0 : Titre */}
-          <h1 className={`text-7xl font-bold bg-gradient-to-r from-violet-400 via-cyan-400 to-violet-400 bg-clip-text text-transparent transition-all duration-1000 ${introStep >= 0 ? "opacity-100 scale-100" : "opacity-0 scale-50"}`}>LOGIQUE</h1>
-          <p className={`text-xl text-gray-400 mt-2 transition-all duration-700 ${introStep >= 0 ? "opacity-100" : "opacity-0"}`}>Le jeu de logique ultime</p>
+          <h1 className={`text-7xl font-bold bg-gradient-to-r ${qConfig.gradientFrom} ${qConfig.gradientVia} ${qConfig.gradientTo} bg-clip-text text-transparent transition-all duration-1000 ${introStep >= 0 ? "opacity-100 scale-100" : "opacity-0 scale-50"}`}>{qConfig.name}</h1>
+          <p className={`text-xl text-gray-400 mt-2 transition-all duration-700 ${introStep >= 0 ? "opacity-100" : "opacity-0"}`}>{qConfig.subtitle}</p>
 
           {/* Step 1 : Joueurs */}
           <div className={`flex flex-wrap gap-4 justify-center mt-8 transition-all duration-700 ${introStep >= 1 ? "opacity-100" : "opacity-0"}`}>
@@ -350,11 +354,14 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
     );
   }
 
-  // === FIN + QI ===
+  // === FIN + METRIC ===
   if (room.status === "finished") {
     const winnerScore = scores[0]?.score || 0;
-    const iq = estimateIQ(winnerScore);
-    const iqPct = Math.min(100, ((iq - 70) / (170 - 70)) * 100);
+    const metric = getEndGameMetric((room.quizType as QuizType) || "logique", winnerScore);
+    const isActu = room.quizType === "actualite";
+    const gaugePct = isActu ? Math.min(100, metric.value) : Math.min(100, ((metric.value - 70) / (170 - 70)) * 100);
+    const gaugeGradient = isActu ? "from-gray-500 via-amber-500 via-green-500 to-violet-500" : "from-red-500 via-yellow-500 via-green-500 to-cyan-500";
+    const valueColor = isActu ? "text-amber-400" : "text-cyan-400";
 
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-8 relative overflow-hidden">
@@ -369,16 +376,16 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
           {scores.length >= 3 && <div className="text-center"><p className="text-xl mb-2">{players.find((p) => p.id === scores[2].playerId)?.name}</p><div className="w-28 h-20 bg-orange-700/20 rounded-t-xl flex items-center justify-center text-4xl">🥉</div><p className="text-lg font-mono text-orange-400">{scores[2].score}</p></div>}
         </div>
 
-        {/* QI Gauge */}
+        {/* Metric Gauge */}
         <div className="w-full max-w-md text-center mb-8">
-          <p className="text-gray-400 mb-2">QI logique estime</p>
-          <p className="text-6xl font-bold text-cyan-400 mb-1">{iq}</p>
-          <p className="text-xl text-gray-300 mb-4">{iqLabel(iq)}</p>
+          <p className="text-gray-400 mb-2">{metric.metricName}</p>
+          <p className={`text-6xl font-bold ${valueColor} mb-1`}>{metric.value}{isActu ? "/100" : ""}</p>
+          <p className="text-xl text-gray-300 mb-4">{metric.label}</p>
           <div className="w-full h-4 bg-white/10 rounded-full overflow-hidden">
-            <div className="h-full rounded-full bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 to-cyan-500 transition-all duration-2000" style={{ width: `${iqPct}%` }} />
+            <div className={`h-full rounded-full bg-gradient-to-r ${gaugeGradient} transition-all duration-2000`} style={{ width: `${gaugePct}%` }} />
           </div>
           <div className="flex justify-between text-xs text-gray-500 mt-1">
-            <span>80</span><span>100</span><span>120</span><span>140</span><span>160+</span>
+            {isActu ? <><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></> : <><span>80</span><span>100</span><span>120</span><span>140</span><span>160+</span></>}
           </div>
         </div>
 

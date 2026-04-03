@@ -6,7 +6,7 @@ import { nanoid } from "nanoid";
 
 export async function POST(request: Request) {
   try {
-    const { hostName, avatar = "🎮", mode = "party" } = await request.json();
+    const { hostName, avatar = "🎮", mode = "party", quizType = "logique" } = await request.json();
 
     if (!hostName || typeof hostName !== "string" || hostName.trim().length < 1) {
       return NextResponse.json({ error: "Nom requis" }, { status: 400 });
@@ -28,9 +28,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Impossible de creer une room" }, { status: 500 });
     }
 
+    const validQuizType = quizType === "actualite" ? "actualite" : "logique";
+
     // Selectionner 100 questions triees par difficulte
     const questionsResult = await sql`
-      SELECT id, difficulty, time_limit FROM questions ORDER BY difficulty ASC, random()
+      SELECT id, difficulty, time_limit FROM questions WHERE quiz_type = ${validQuizType} ORDER BY difficulty ASC, random()
     `;
     const questionIds = questionsResult.map((q) => (q as Record<string, number>).id);
 
@@ -45,6 +47,7 @@ export async function POST(request: Request) {
       roomCode,
       hostId,
       mode: mode === "remote" ? "remote" : "party",
+      quizType: validQuizType,
       status: "waiting",
       currentQuestionIndex: -1,
       questionIds: JSON.stringify(questionIds),

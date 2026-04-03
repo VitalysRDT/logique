@@ -14,7 +14,9 @@ import {
   timerWarning,
   leaderboardUpdate,
 } from "@/lib/commentary";
-import { estimateIQ, iqLabel } from "@/lib/scoring";
+import { getEndGameMetric } from "@/lib/scoring";
+import { getQuizConfig } from "@/lib/quiz-config";
+import type { QuizType } from "@/lib/types";
 
 const ANSWER_COLORS_DISPLAY = [
   "from-blue-600 to-blue-500",
@@ -69,10 +71,11 @@ function PlayContent({ roomCode }: { roomCode: string }) {
     if (key === lastSpokenRef.current) return;
     lastSpokenRef.current = key;
 
+    const qt = (room.quizType as QuizType) || "logique";
     if (room.status === "playing" && currentQuestion) {
       const qNum = room.currentQuestionIndex + 1;
-      speakNow(questionIntro(qNum, room.totalQuestions, currentQuestion.difficulty, currentQuestion.text));
-      if (nextQuestion) prefetch(questionIntro(qNum + 1, room.totalQuestions, nextQuestion.difficulty, nextQuestion.text));
+      speakNow(questionIntro(qNum, room.totalQuestions, currentQuestion.difficulty, currentQuestion.text, qt));
+      if (nextQuestion) prefetch(questionIntro(qNum + 1, room.totalQuestions, nextQuestion.difficulty, nextQuestion.text, qt));
     } else if (room.status === "reveal" && revealData && currentQuestion) {
       const qNum = room.currentQuestionIndex + 1;
       let text = revealComment(currentQuestion.choices[revealData.correctIndex], revealData.explanation, revealData.playerResults, players.map((p) => ({ name: p.name, streak: p.streak })));
@@ -80,9 +83,9 @@ function PlayContent({ roomCode }: { roomCode: string }) {
         text += " " + leaderboardUpdate(scores.map((s) => ({ playerName: players.find((p) => p.id === s.playerId)?.name || "?", score: s.score })), qNum);
       }
       speakNow(text);
-      if (nextQuestion) prefetch(questionIntro(qNum + 1, room.totalQuestions, nextQuestion.difficulty, nextQuestion.text));
+      if (nextQuestion) prefetch(questionIntro(qNum + 1, room.totalQuestions, nextQuestion.difficulty, nextQuestion.text, qt));
     } else if (room.status === "finished" && scores.length > 0) {
-      speakNow(gameOverComment(scores.map((s) => ({ playerName: players.find((p) => p.id === s.playerId)?.name || "?", score: s.score }))));
+      speakNow(gameOverComment(scores.map((s) => ({ playerName: players.find((p) => p.id === s.playerId)?.name || "?", score: s.score })), qt));
     }
   }, [state, speakNow, prefetch]);
 
@@ -308,7 +311,7 @@ function PlayContent({ roomCode }: { roomCode: string }) {
         <div className="text-7xl mb-4">{myRank === 1 ? "🏆" : myRank === 2 ? "🥈" : myRank === 3 ? "🥉" : "🎮"}</div>
         <p className="text-5xl font-bold mb-2">#{myRank}</p>
         <p className="text-2xl text-gray-400 mb-4">{myScore?.score || 0} points</p>
-        {myScore && (() => { const iq = estimateIQ(myScore.score); return (<div className="mb-6"><p className="text-gray-400 text-sm">QI logique</p><p className="text-3xl font-bold text-cyan-400">{iq}</p><p className="text-xs text-gray-300">{iqLabel(iq)}</p></div>); })()}
+        {myScore && (() => { const m = getEndGameMetric((room.quizType as QuizType) || "logique", myScore.score); return (<div className="mb-6"><p className="text-gray-400 text-sm">{m.metricName}</p><p className={`text-3xl font-bold ${room.quizType === "actualite" ? "text-amber-400" : "text-cyan-400"}`}>{m.value}{room.quizType === "actualite" ? "/100" : ""}</p><p className="text-xs text-gray-300">{m.label}</p></div>); })()}
         <div className="w-full max-w-xs space-y-2">
           {scores.map((s, i) => {
             const p = players.find((pl) => pl.id === s.playerId);
@@ -341,7 +344,7 @@ function RemoteView({
   selectedAnswer, submitError, handleAnswer, hostControl, markReady, readyPlayerIds,
   speakAsync, prefetch, stopAudio, nextQuestion,
 }: {
-  room: { status: string; currentQuestionIndex: number; totalQuestions: number; hostId: string; roomCode: string; questionDeadline: number; timeLimitSeconds: number };
+  room: { status: string; currentQuestionIndex: number; totalQuestions: number; hostId: string; roomCode: string; questionDeadline: number; timeLimitSeconds: number; quizType?: string };
   players: { id: string; name: string; avatar: string; score: number }[];
   scores: { playerId: string; score: number }[];
   currentQuestion: { difficulty: number; text: string; choices: string[]; time_limit: number; category: string; type: string; id: number; svg_config: unknown } | null;
@@ -365,14 +368,16 @@ function RemoteView({
   nextQuestion: { difficulty: number; text: string; time_limit: number } | null;
 }) {
   const [introStep, setIntroStep] = useState(-1);
+  const rQt = (room.quizType as QuizType) || "logique";
+  const rConfig = getQuizConfig(rQt);
 
   // Intro async (synchronisee avec audio)
   useEffect(() => {
     if (room.status !== "intro") return;
     const cancelled = { current: false };
-    const segments = rulesIntroSegments(players.map((p) => p.name), players.length === 1);
+    const segments = rulesIntroSegments(players.map((p) => p.name), players.length === 1, rQt);
     segments.forEach((s) => prefetch(s.text));
-    if (nextQuestion) prefetch(questionIntro(1, room.totalQuestions, nextQuestion.difficulty, nextQuestion.text));
+    if (nextQuestion) prefetch(questionIntro(1, room.totalQuestions, nextQuestion.difficulty, nextQuestion.text, rQt));
 
     async function runIntro() {
       for (let i = 0; i < segments.length; i++) {
@@ -399,7 +404,7 @@ function RemoteView({
         <div className="absolute inset-0 bg-gradient-to-b from-violet-950 via-indigo-950 to-black" />
         <div className="relative z-10 flex flex-col items-center text-center max-w-lg w-full space-y-5">
           {/* 0: Titre */}
-          <h1 className={`text-5xl font-bold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent transition-all duration-1000 ${introStep >= 0 ? "opacity-100 scale-100" : "opacity-0 scale-50"}`}>LOGIQUE</h1>
+          <h1 className={`text-5xl font-bold bg-gradient-to-r ${rConfig.gradientFrom} ${rConfig.gradientVia} ${rConfig.gradientTo} bg-clip-text text-transparent transition-all duration-1000 ${introStep >= 0 ? "opacity-100 scale-100" : "opacity-0 scale-50"}`}>{rConfig.name}</h1>
 
           {/* 1: Joueurs */}
           <div className={`flex flex-wrap gap-2 justify-center transition-all duration-700 ${introStep >= 1 ? "opacity-100" : "opacity-0"}`}>
@@ -452,7 +457,7 @@ function RemoteView({
   if (room.status === "waiting") {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent mb-6">LOGIQUE</h1>
+        <h1 className={`text-4xl font-bold bg-gradient-to-r ${rConfig.gradientFrom} ${rConfig.gradientVia} ${rConfig.gradientTo} bg-clip-text text-transparent mb-6`}>{rConfig.name}</h1>
 
         <div className="mb-6">
           <p className="text-gray-400 mb-2">Code de la partie :</p>
@@ -677,12 +682,12 @@ function RemoteView({
           </div>
         )}
 
-        {/* QI */}
-        {myScore && (() => { const iq = estimateIQ(myScore.score); return (
+        {/* Metric */}
+        {myScore && (() => { const m = getEndGameMetric(rQt, myScore.score); return (
           <div className="mt-4 text-center">
-            <p className="text-gray-400 text-sm">QI logique estime</p>
-            <p className="text-4xl font-bold text-cyan-400">{iq}</p>
-            <p className="text-sm text-gray-300">{iqLabel(iq)}</p>
+            <p className="text-gray-400 text-sm">{m.metricName}</p>
+            <p className={`text-4xl font-bold ${rQt === "actualite" ? "text-amber-400" : "text-cyan-400"}`}>{m.value}{rQt === "actualite" ? "/100" : ""}</p>
+            <p className="text-sm text-gray-300">{m.label}</p>
           </div>
         ); })()}
 
