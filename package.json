@@ -10,11 +10,11 @@
     "db:seed": "npx tsx src/lib/seed.ts"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^1.0.2",
-    "@upstash/redis": "^1.37.0",
     "framer-motion": "^12.38.0",
+    "ioredis": "^5.10.1",
     "nanoid": "^5.1.7",
     "next": "^16.2.1",
+    "pg": "^8.20.0",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
@@ -23,6 +23,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.2",
     "@types/node": "^25.5.0",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.4",

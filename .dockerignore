@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.gitignore
+.env
+.env.*
+.vercel
+.vscode
+.idea
+*.md
+*.log
+.DS_Store
+coverage
+.turbo
