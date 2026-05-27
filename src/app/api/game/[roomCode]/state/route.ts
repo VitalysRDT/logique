@@ -3,6 +3,7 @@ import { redis } from "@/lib/redis";
 import { sql } from "@/lib/db";
 import { ensureParsed } from "@/lib/parse";
 import { calculateScore } from "@/lib/scoring";
+import { broadcastRoom } from "@/lib/broadcast";
 import type { Player, QuestionForClient } from "@/lib/types";
 
 export async function GET(
@@ -68,6 +69,8 @@ export async function GET(
       if (deadline > 0 && Date.now() > deadline) {
         await autoResolve(roomCode, qIndex, stateRaw, questionIds);
         status = "reveal";
+        // The lazy timer-expiry transition mutated state; tell other clients.
+        await broadcastRoom(roomCode);
         // Re-lire les scores apres resolution
         const freshScores = await redis.zrange(`room:${roomCode}:scores`, 0, -1, { withScores: true, rev: true });
         scores.length = 0;

@@ -3,6 +3,7 @@ import { redis } from "@/lib/redis";
 import { sql } from "@/lib/db";
 import { calculateScore } from "@/lib/scoring";
 import { ensureParsed } from "@/lib/parse";
+import { broadcastRoom } from "@/lib/broadcast";
 
 export async function POST(
   request: Request,
@@ -66,6 +67,7 @@ export async function POST(
     await resolveQuestion(roomCode, qIndex, state);
   }
 
+  await broadcastRoom(roomCode);
   return NextResponse.json({ accepted: true });
   } catch (err) {
     console.error("ANSWER ERROR:", err);

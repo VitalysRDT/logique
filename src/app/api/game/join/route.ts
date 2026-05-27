@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { redis } from "@/lib/redis";
 import { nanoid } from "nanoid";
+import { broadcastRoom } from "@/lib/broadcast";
 
 export async function POST(request: Request) {
   const { roomCode, playerName, avatar = "🎯" } = await request.json();
@@ -51,6 +52,8 @@ export async function POST(request: Request) {
   pipeline.incr(`room:${code}:version`);
 
   await pipeline.exec();
+
+  await broadcastRoom(code);
 
   return NextResponse.json({
     playerId,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { redis } from "@/lib/redis";
 import { ensureParsed } from "@/lib/parse";
+import { broadcastRoom } from "@/lib/broadcast";
 
 export async function POST(
   request: Request,
@@ -60,6 +61,7 @@ export async function POST(
         // Fin de partie
         await redis.hset(`room:${roomCode}:state`, { status: "finished" });
         await redis.incr(`room:${roomCode}:version`);
+        await broadcastRoom(roomCode);
         return NextResponse.json({ allReady: true, finished: true });
       }
 
@@ -79,9 +81,11 @@ export async function POST(
       });
       await redis.incr(`room:${roomCode}:version`);
 
+      await broadcastRoom(roomCode);
       return NextResponse.json({ allReady: true, nextQuestion: true });
     }
 
+    await broadcastRoom(roomCode);
     return NextResponse.json({ allReady: false, readyCount, playerCount });
   } catch (err) {
     console.error("READY ERROR:", err);

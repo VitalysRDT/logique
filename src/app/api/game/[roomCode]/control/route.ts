@@ -3,6 +3,7 @@ import { redis } from "@/lib/redis";
 import { sql } from "@/lib/db";
 import { calculateScore } from "@/lib/scoring";
 import { ensureParsed } from "@/lib/parse";
+import { broadcastRoom } from "@/lib/broadcast";
 
 export async function POST(
   request: Request,
@@ -27,18 +28,29 @@ export async function POST(
       return NextResponse.json({ error: `Non autorise: hostId=${state.hostId} playerId=${playerId} tokenMatch=${player.token === token}` }, { status: 403 });
     }
 
+    let response: NextResponse;
     switch (action) {
       case "start":
-        return await handleStart(roomCode, state);
+        response = await handleStart(roomCode, state);
+        break;
       case "begin":
-        return await handleBegin(roomCode, state);
+        response = await handleBegin(roomCode, state);
+        break;
       case "next":
-        return await handleNext(roomCode, state);
+        response = await handleNext(roomCode, state);
+        break;
       case "end":
-        return await handleEnd(roomCode);
+        response = await handleEnd(roomCode);
+        break;
       default:
         return NextResponse.json({ error: "Action inconnue" }, { status: 400 });
     }
+
+    // Notify clients of the state change (Realtime primary transport).
+    if (response.status === 200) {
+      await broadcastRoom(roomCode);
+    }
+    return response;
   } catch (err) {
     console.error("CONTROL ERROR:", err);
     return NextResponse.json(

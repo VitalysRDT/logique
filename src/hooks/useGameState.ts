@@ -1,7 +1,21 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { GameState } from "@/lib/types";
+
+let supabaseClient: SupabaseClient | null = null;
+function getSupabase(): SupabaseClient | null {
+  if (supabaseClient) return supabaseClient;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  supabaseClient = createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    realtime: { params: { eventsPerSecond: 20 } },
+  });
+  return supabaseClient;
+}
 
 export function useGameState(roomCode: string) {
   const [state, setState] = useState<GameState | null>(null);
@@ -34,9 +48,28 @@ export function useGameState(roomCode: string) {
     }
   }, [roomCode]);
 
+  // Primary transport: Supabase Realtime. Each server mutation broadcasts a
+  // "state" event on room:<code>; we react by refetching the source of truth
+  // (Redis/Postgres via /api/game/<code>/state).
+  useEffect(() => {
+    const supabase = getSupabase();
+    if (!supabase) return;
+    const ch = supabase.channel(`room:${roomCode}`, {
+      config: { broadcast: { self: false } },
+    });
+    ch.on("broadcast", { event: "state" }, () => {
+      void fetchState();
+    }).subscribe();
+    return () => {
+      void supabase.removeChannel(ch);
+    };
+  }, [roomCode, fetchState]);
+
+  // Initial fetch + slow fallback poll (12s) for resilience if a Realtime
+  // broadcast is missed (was a 300ms poll; Realtime is now primary).
   useEffect(() => {
     fetchState();
-    const interval = setInterval(fetchState, 300);
+    const interval = setInterval(fetchState, 12000);
     return () => clearInterval(interval);
   }, [fetchState]);
 
