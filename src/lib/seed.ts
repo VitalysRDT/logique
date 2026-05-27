@@ -1,30 +1,12 @@
-import { Pool } from "pg";
+import { sql } from "./db";
 import { questions } from "./questions";
 import { questionsActualite } from "./questions-actualite";
 
 async function seed() {
-  const DATABASE_URL = process.env.DATABASE_URL;
-  if (!DATABASE_URL) {
+  if (!process.env.DATABASE_URL) {
     console.error("DATABASE_URL manquant dans .env.local");
     process.exit(1);
   }
-
-  const pool = new Pool({ connectionString: DATABASE_URL });
-  const sql = async (
-    strings: TemplateStringsArray,
-    ...values: unknown[]
-  ): Promise<Record<string, unknown>[]> => {
-    let text = "";
-    const params: unknown[] = [];
-    strings.forEach((s, i) => {
-      text += s;
-      if (i < values.length) {
-        params.push(values[i]);
-        text += "$" + params.length;
-      }
-    });
-    return (await pool.query(text, params)).rows as Record<string, unknown>[];
-  };
 
   console.log("Creation de la table questions...");
   await sql`

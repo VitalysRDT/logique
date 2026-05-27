@@ -2,7 +2,9 @@ import { Pool } from "pg";
 
 /**
  * Tagged-template wrapper compatible avec l'API neon() :
- *   sql\`SELECT \${id}\` → pg.Pool.query avec $1, $2...
+ *   sql`SELECT ${id}` → pg.Pool.query avec $1, $2...
+ * Adossé à node-postgres (pg) + pooler Supabase (transaction mode).
+ * TLS verify-full contre la CA racine Supabase via SUPABASE_CA_CERT.
  */
 
 const globalForDb = globalThis as unknown as { __pgPool?: Pool };
@@ -17,11 +19,13 @@ function getPool(): Pool {
   }
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL requis");
+  const ca = process.env.SUPABASE_CA_CERT;
   cachedPool = new Pool({
     connectionString: url,
     max: 10,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 10_000,
+    ssl: ca ? { ca, rejectUnauthorized: true } : { rejectUnauthorized: true },
   });
   if (process.env.NODE_ENV !== "production") globalForDb.__pgPool = cachedPool;
   return cachedPool;
