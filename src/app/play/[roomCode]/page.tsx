@@ -311,7 +311,7 @@ function PlayContent({ roomCode }: { roomCode: string }) {
         <div className="text-7xl mb-4">{myRank === 1 ? "🏆" : myRank === 2 ? "🥈" : myRank === 3 ? "🥉" : "🎮"}</div>
         <p className="text-5xl font-bold mb-2">#{myRank}</p>
         <p className="text-2xl text-gray-400 mb-4">{myScore?.score || 0} points</p>
-        {myScore && (() => { const m = getEndGameMetric((room.quizType as QuizType) || "logique", myScore.score); return (<div className="mb-6"><p className="text-gray-400 text-sm">{m.metricName}</p><p className={`text-3xl font-bold ${room.quizType === "actualite" ? "text-amber-400" : "text-cyan-400"}`}>{m.value}{room.quizType === "actualite" ? "/100" : ""}</p><p className="text-xs text-gray-300">{m.label}</p></div>); })()}
+        {myScore && (() => { const m = getEndGameMetric((room.quizType as QuizType) || "logique", myScore.score); return (<div className="mb-6"><p className="text-gray-400 text-sm">{m.metricName}</p><p className={`text-3xl font-bold ${room.quizType !== "logique" ? "text-amber-400" : "text-cyan-400"}`}>{m.value}{room.quizType !== "logique" ? "/100" : ""}</p><p className="text-xs text-gray-300">{m.label}</p></div>); })()}
         <div className="w-full max-w-xs space-y-2">
           {scores.map((s, i) => {
             const p = players.find((pl) => pl.id === s.playerId);
@@ -686,7 +686,7 @@ function RemoteView({
         {myScore && (() => { const m = getEndGameMetric(rQt, myScore.score); return (
           <div className="mt-4 text-center">
             <p className="text-gray-400 text-sm">{m.metricName}</p>
-            <p className={`text-4xl font-bold ${rQt === "actualite" ? "text-amber-400" : "text-cyan-400"}`}>{m.value}{rQt === "actualite" ? "/100" : ""}</p>
+            <p className={`text-4xl font-bold ${rQt !== "logique" ? "text-amber-400" : "text-cyan-400"}`}>{m.value}{rQt !== "logique" ? "/100" : ""}</p>
             <p className="text-sm text-gray-300">{m.label}</p>
           </div>
         ); })()}

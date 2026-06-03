@@ -1,3 +1,6 @@
+import { getQuizConfig } from "./quiz-config";
+import type { QuizType } from "./types";
+
 export function calculateScore(
   difficulty: number,
   isCorrect: boolean,
@@ -69,7 +72,7 @@ export function estimateExpertise(score: number): number {
 
 export function expertiseLabel(expertise: number): string {
   if (expertise >= 90) return "Encyclopedie vivante";
-  if (expertise >= 75) return "Expert en actu";
+  if (expertise >= 75) return "Expert";
   if (expertise >= 60) return "Cultive";
   if (expertise >= 42) return "Informe";
   if (expertise >= 25) return "Novice";
@@ -77,10 +80,12 @@ export function expertiseLabel(expertise: number): string {
 }
 
 export function getEndGameMetric(quizType: string, score: number): { value: number; label: string; metricName: string } {
-  if (quizType === "actualite") {
-    const value = estimateExpertise(score);
-    return { value, label: expertiseLabel(value), metricName: "Niveau d'expertise" };
+  // Logique = QI estime ; tous les autres themes = score d'expertise sur 100
+  if (quizType === "logique") {
+    const value = estimateIQ(score);
+    return { value, label: iqLabel(value), metricName: "QI logique" };
   }
-  const value = estimateIQ(score);
-  return { value, label: iqLabel(value), metricName: "QI logique" };
+  const value = estimateExpertise(score);
+  const config = getQuizConfig(quizType as QuizType);
+  return { value, label: expertiseLabel(value), metricName: config.metricName };
 }

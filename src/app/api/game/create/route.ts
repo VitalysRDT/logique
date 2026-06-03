@@ -28,7 +28,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Impossible de creer une room" }, { status: 500 });
     }
 
-    const validQuizType = quizType === "actualite" ? "actualite" : "logique";
+    const VALID_QUIZ_TYPES = ["logique", "actualite", "sciences", "vraifaux", "insolite", "marques"];
+    const validQuizType = VALID_QUIZ_TYPES.includes(quizType) ? quizType : "logique";
 
     // Selectionner 100 questions triees par difficulte
     const questionsResult = await sql`

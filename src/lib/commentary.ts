@@ -21,23 +21,31 @@ export function rulesIntroSegments(playerNames: string[], isSolo: boolean, quizT
   const namesList = playerNames.length > 1 ? `${allButLast} et ${last}` : playerNames[0];
   const config = getQuizConfig(quizType);
   const isActu = quizType === "actualite";
+  const isLogique = quizType === "logique";
+  const subject = config.narrationSubject;
 
   return [
     {
       key: "title",
-      text: isActu
-        ? `Bonsoir à tous ! Je suis Benoît, votre animateur pour ce soir. Bienvenue dans ${config.hostGameName}, le quiz qui va tester votre culture de l'année ! Vous suivez bien l'actu ? On va le vérifier !`
-        : "Bonsoir à tous ! Je suis Benoît, votre animateur pour ce soir. Bienvenue dans Logique, le jeu qui va mettre vos cerveaux à rude épreuve ! Vous êtes prêts pour un voyage au cœur de la logique pure ?",
+      text: isLogique
+        ? "Bonsoir à tous ! Je suis Benoît, votre animateur pour ce soir. Bienvenue dans Logique, le jeu qui va mettre vos cerveaux à rude épreuve ! Vous êtes prêts pour un voyage au cœur de la logique pure ?"
+        : isActu
+          ? `Bonsoir à tous ! Je suis Benoît, votre animateur pour ce soir. Bienvenue dans ${config.hostGameName}, le quiz qui va tester votre culture de l'année ! Vous suivez bien l'actu ? On va le vérifier !`
+          : `Bonsoir à tous ! Je suis Benoît, votre animateur pour ce soir. Bienvenue dans ${config.hostGameName}, le quiz qui va tester vos connaissances sur ${subject} ! Vous êtes prêts ? On va voir ça !`,
     },
     {
       key: "players",
       text: isSolo
-        ? isActu
-          ? `Ce soir, ${playerNames[0]} va tenter le défi en solo ! 100 questions sur l'actualité 2025, du niveau trivial jusqu'au niveau expert. Est-ce que vous suivez bien l'actu ? On va le découvrir !`
-          : `Ce soir, ${playerNames[0]} va tenter le défi en solo ! 100 questions de logique, du niveau trivial jusqu'au niveau impossible. Est-ce que vous avez ce qu'il faut ? On va le découvrir !`
-        : isActu
-          ? `Ce soir, nous avons ${namesList} qui vont s'affronter sur 100 questions d'actualité 2025. Que le plus informé gagne !`
-          : `Ce soir, nous avons ${namesList} qui vont s'affronter sur 100 questions de logique pure. Que le meilleur cerveau gagne !`,
+        ? isLogique
+          ? `Ce soir, ${playerNames[0]} va tenter le défi en solo ! 100 questions de logique, du niveau trivial jusqu'au niveau impossible. Est-ce que vous avez ce qu'il faut ? On va le découvrir !`
+          : isActu
+            ? `Ce soir, ${playerNames[0]} va tenter le défi en solo ! 100 questions sur l'actualité 2025, du niveau trivial jusqu'au niveau expert. Est-ce que vous suivez bien l'actu ? On va le découvrir !`
+            : `Ce soir, ${playerNames[0]} va tenter le défi en solo ! 100 questions sur ${subject}, du niveau facile jusqu'au niveau expert. Est-ce que vous avez ce qu'il faut ? On va le découvrir !`
+        : isLogique
+          ? `Ce soir, nous avons ${namesList} qui vont s'affronter sur 100 questions de logique pure. Que le meilleur cerveau gagne !`
+          : isActu
+            ? `Ce soir, nous avons ${namesList} qui vont s'affronter sur 100 questions d'actualité 2025. Que le plus informé gagne !`
+            : `Ce soir, nous avons ${namesList} qui vont s'affronter sur 100 questions sur ${subject}. Que le meilleur gagne !`,
     },
     {
       key: "phone",
@@ -53,9 +61,11 @@ export function rulesIntroSegments(playerNames: string[], isSolo: boolean, quizT
     },
     {
       key: "difficulty",
-      text: isActu
-        ? "On va commencer tranquillement avec des questions faciles, de la culture générale 2025 bien connue. Mais ne vous endormez pas ! Ça va monter progressivement, et les dernières questions portent sur des détails que seuls les vrais passionnés d'actu connaissent !"
-        : "On va commencer tranquillement avec des questions de niveau trivial, pour échauffer les neurones. Mais ne vous endormez pas ! Ça va monter progressivement, et les dernières questions sont de niveau impossible. Même des mathématiciens professionnels s'y cassent les dents !",
+      text: isLogique
+        ? "On va commencer tranquillement avec des questions de niveau trivial, pour échauffer les neurones. Mais ne vous endormez pas ! Ça va monter progressivement, et les dernières questions sont de niveau impossible. Même des mathématiciens professionnels s'y cassent les dents !"
+        : isActu
+          ? "On va commencer tranquillement avec des questions faciles, de la culture générale 2025 bien connue. Mais ne vous endormez pas ! Ça va monter progressivement, et les dernières questions portent sur des détails que seuls les vrais passionnés d'actu connaissent !"
+          : "On va commencer tranquillement avec des questions faciles et bien connues. Mais ne vous endormez pas ! Ça va monter progressivement, et les dernières questions sont réservées aux vrais experts !",
     },
     {
       key: "ready",
@@ -81,11 +91,11 @@ export function rulesIntro(playerNames: string[], quizType: QuizType = "logique"
 
 export function questionIntro(questionNum: number, totalQuestions: number, difficulty: number, questionText: string, quizType: QuizType = "logique"): string {
   const diffName = DIFFICULTY_NAMES[difficulty] || "";
-  const isActu = quizType === "actualite";
+  const isLogique = quizType === "logique";
   let intro = "";
 
   if (questionNum === 1) {
-    intro = isActu ? "Première question pour commencer en douceur. " : "Première question pour se mettre en jambes. Niveau trivial. ";
+    intro = isLogique ? "Première question pour se mettre en jambes. Niveau trivial. " : "Première question pour commencer en douceur. ";
   } else if (questionNum === 10) {
     intro = "Question 10 ! On accélère. ";
   } else if (questionNum === 25) {
@@ -93,11 +103,11 @@ export function questionIntro(questionNum: number, totalQuestions: number, diffi
   } else if (questionNum === 50) {
     intro = "La moitié ! Question 50 ! Ça ne rigole plus. ";
   } else if (questionNum === 75) {
-    intro = isActu ? "Question 75. Les trois quarts ! Seuls les vrais experts survivent. " : "Question 75. Les trois quarts ! Seuls les vrais logiciens survivent. ";
+    intro = isLogique ? "Question 75. Les trois quarts ! Seuls les vrais logiciens survivent. " : "Question 75. Les trois quarts ! Seuls les vrais experts survivent. ";
   } else if (questionNum === 90) {
     intro = "Question 90 ! Zone rouge. Bonne chance. ";
   } else if (questionNum === 100) {
-    intro = "Dernière question ! La centième ! Niveau impossible ! ";
+    intro = isLogique ? "Dernière question ! La centième ! Niveau impossible ! " : "Dernière question ! La centième ! Accrochez-vous ! ";
   } else if (difficulty >= 9) {
     intro = pick([`Question ${questionNum}. Niveau ${diffName}. Accrochez-vous. `, `Attention, question ${questionNum}. Niveau ${diffName}. `]);
   } else if (difficulty >= 7) {
@@ -228,7 +238,7 @@ export function gameOverComment(
   if (scores.length === 1) {
     const m = getEndGameMetric(quizType, scores[0].score);
     return `C'est terminé ! ${scores[0].playerName}, vous avez obtenu ${scores[0].score} points en solo ! `
-      + (quizType === "actualite"
+      + (quizType !== "logique"
         ? `Votre ${m.metricName} : ${m.value}/100. ${m.label} ! `
         : `Votre ${m.metricName} est estimé à ${m.value}. ${m.label} ! `)
       + `Merci d'avoir joué à ${config.hostGameName} !`;
@@ -249,7 +259,7 @@ export function gameOverComment(
     comment += ` C'était serré ! Seulement ${gap} points d'écart avec ${second.playerName} !`;
   }
 
-  comment += quizType === "actualite"
+  comment += quizType !== "logique"
     ? ` Le ${winnerMetric.metricName} de ${winner.playerName} : ${winnerMetric.value}/100. ${winnerMetric.label} !`
     : ` Le ${winnerMetric.metricName} de ${winner.playerName} est estimé à ${winnerMetric.value}. ${winnerMetric.label} !`;
   comment += ` Bravo à tous et merci d'avoir joué à ${config.hostGameName} !`;

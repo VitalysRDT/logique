@@ -1,4 +1,4 @@
-export type QuizType = "logique" | "actualite";
+export type QuizType = "logique" | "actualite" | "sciences" | "vraifaux" | "insolite" | "marques";
 
 export interface Question {
   id: number;

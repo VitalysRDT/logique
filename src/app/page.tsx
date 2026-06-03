@@ -145,6 +145,70 @@ export default function Home() {
               </div>
             </button>
 
+            {/* Sciences & Nature */}
+            <button onClick={() => selectQuiz("sciences")}
+              className="w-full group relative overflow-hidden rounded-2xl glass-strong p-6 text-left transition-all hover:border-emerald-500/30">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-emerald-500/20 transition" />
+              <div className="relative">
+                <div className="flex items-center gap-3">
+                  <span className="text-4xl">&#x1f52c;</span>
+                  <div>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">SCIENCES</p>
+                    <p className="text-sm text-[var(--text-secondary)] mt-0.5">La nature et l&apos;univers d&eacute;crypt&eacute;s</p>
+                  </div>
+                </div>
+                <p className="text-sm text-[var(--text-muted)] mt-3">100 questions de sciences &amp; nature : biologie, physique, astronomie, animaux, corps humain...</p>
+              </div>
+            </button>
+
+            {/* Vrai ou Faux */}
+            <button onClick={() => selectQuiz("vraifaux")}
+              className="w-full group relative overflow-hidden rounded-2xl glass-strong p-6 text-left transition-all hover:border-sky-500/30">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-sky-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-sky-500/20 transition" />
+              <div className="relative">
+                <div className="flex items-center gap-3">
+                  <span className="text-4xl">&#x1f914;</span>
+                  <div>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-sky-400 via-indigo-300 to-sky-400 bg-clip-text text-transparent">VRAI ou FAUX</p>
+                    <p className="text-sm text-[var(--text-secondary)] mt-0.5">D&eacute;m&ecirc;lez le vrai des id&eacute;es re&ccedil;ues</p>
+                  </div>
+                </div>
+                <p className="text-sm text-[var(--text-muted)] mt-3">100 affirmations &agrave; trancher : mythes, id&eacute;es re&ccedil;ues et v&eacute;rit&eacute;s surprenantes...</p>
+              </div>
+            </button>
+
+            {/* Insolite */}
+            <button onClick={() => selectQuiz("insolite")}
+              className="w-full group relative overflow-hidden rounded-2xl glass-strong p-6 text-left transition-all hover:border-fuchsia-500/30">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-fuchsia-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-fuchsia-500/20 transition" />
+              <div className="relative">
+                <div className="flex items-center gap-3">
+                  <span className="text-4xl">&#x1f4a1;</span>
+                  <div>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-fuchsia-400 via-pink-300 to-fuchsia-400 bg-clip-text text-transparent">INSOLITE</p>
+                    <p className="text-sm text-[var(--text-secondary)] mt-0.5">Le saviez-vous ? Faits &eacute;tonnants</p>
+                  </div>
+                </div>
+                <p className="text-sm text-[var(--text-muted)] mt-3">100 faits insolites : anecdotes, records, curiosit&eacute;s de la nature et du monde...</p>
+              </div>
+            </button>
+
+            {/* Marques & Logos */}
+            <button onClick={() => selectQuiz("marques")}
+              className="w-full group relative overflow-hidden rounded-2xl glass-strong p-6 text-left transition-all hover:border-red-500/30">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-red-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-red-500/20 transition" />
+              <div className="relative">
+                <div className="flex items-center gap-3">
+                  <span className="text-4xl">&#x1f3f7;&#xfe0f;</span>
+                  <div>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-red-400 via-yellow-300 to-red-400 bg-clip-text text-transparent">MARQUES</p>
+                    <p className="text-sm text-[var(--text-secondary)] mt-0.5">Slogans, logos et grandes marques</p>
+                  </div>
+                </div>
+                <p className="text-sm text-[var(--text-muted)] mt-3">100 questions sur les marques : slogans cultes, logos, secteurs d&apos;activit&eacute;...</p>
+              </div>
+            </button>
+
             {/* Rejoindre */}
             <button onClick={() => setMode("remote-join")}
               className="w-full rounded-2xl glass p-4 text-center text-[var(--text-secondary)] hover:text-white hover:border-white/20 transition-all">

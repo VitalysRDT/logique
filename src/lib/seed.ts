@@ -1,6 +1,10 @@
 import { sql } from "./db";
 import { questions } from "./questions";
 import { questionsActualite } from "./questions-actualite";
+import { questionsSciences } from "./questions-sciences";
+import { questionsVraiFaux } from "./questions-vraifaux";
+import { questionsInsolite } from "./questions-insolite";
+import { questionsMarques } from "./questions-marques";
 
 async function seed() {
   if (!process.env.DATABASE_URL) {
@@ -85,7 +89,26 @@ async function seed() {
   }
   console.log(`${questionsActualite.length} questions d'actualite inserees.`);
 
-  console.log(`Total : ${questions.length + questionsActualite.length} questions inserees avec succes !`);
+  const extraThemes: { label: string; quizType: string; items: typeof questions }[] = [
+    { label: "sciences & nature", quizType: "sciences", items: questionsSciences },
+    { label: "vrai ou faux", quizType: "vraifaux", items: questionsVraiFaux },
+    { label: "insolite", quizType: "insolite", items: questionsInsolite },
+    { label: "marques & logos", quizType: "marques", items: questionsMarques },
+  ];
+
+  for (const theme of extraThemes) {
+    console.log(`Insertion des questions ${theme.label}...`);
+    for (const q of theme.items) {
+      await sql`
+        INSERT INTO questions (difficulty, category, type, text, choices, correct_index, explanation, svg_config, time_limit, quiz_type)
+        VALUES (${q.difficulty}, ${q.category}, ${q.type}, ${q.text}, ${JSON.stringify(q.choices)}, ${q.correct_index}, ${q.explanation}, ${q.svg_config ? JSON.stringify(q.svg_config) : null}, ${q.time_limit}, ${theme.quizType})
+      `;
+    }
+    console.log(`${theme.items.length} questions ${theme.label} inserees.`);
+  }
+
+  const total = questions.length + questionsActualite.length + extraThemes.reduce((n, t) => n + t.items.length, 0);
+  console.log(`Total : ${total} questions inserees avec succes !`);
   process.exit(0);
 }
 

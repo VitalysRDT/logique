@@ -358,7 +358,7 @@ export default function ScreenPage({ params }: { params: Promise<{ roomCode: str
   if (room.status === "finished") {
     const winnerScore = scores[0]?.score || 0;
     const metric = getEndGameMetric((room.quizType as QuizType) || "logique", winnerScore);
-    const isActu = room.quizType === "actualite";
+    const isActu = room.quizType !== "logique";
     const gaugePct = isActu ? Math.min(100, metric.value) : Math.min(100, ((metric.value - 70) / (170 - 70)) * 100);
     const gaugeGradient = isActu ? "from-gray-500 via-amber-500 via-green-500 to-violet-500" : "from-red-500 via-yellow-500 via-green-500 to-cyan-500";
     const valueColor = isActu ? "text-amber-400" : "text-cyan-400";
