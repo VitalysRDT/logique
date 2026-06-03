@@ -1,0 +1,78 @@
+PROMPT MUSIQUE AVEC PAROLES — THEME "ACTU 2025"
+(à coller dans Suno / Udio — champ Style + champ Lyrics)
+
+====================================================================
+STYLE (champ "Style of music")
+====================================================================
+Modern news anthem, energetic electro-pop, urgent newsroom vibe,
+pulsing synth bass, ticking percussion, breaking-news brass stabs,
+catchy hook, powerful male+female vocals, cinematic, 2025
+futuristic, clean broadcast mix, 120 BPM.
+
+====================================================================
+PAROLES (champ "Lyrics")
+====================================================================
+[Intro]
+(Ticking... breaking news...)
+Deux mille vingt-cinq... écoute bien
+
+[Verse 1]
+Premier flash, le monde tourne plus vite
+Chaque seconde une histoire qui s'écrit
+Sur tous les écrans la planète s'agite
+On te raconte tout, du jour à la nuit
+
+[Pre-Chorus]
+Ça bouge, ça vibre, t'es au cœur de l'action
+Branche-toi, ouvre grand, c'est l'information
+
+[Chorus]
+ACTU 2025 ! (ouais !)
+Le monde en direct sous tes yeux
+ACTU 2025 ! (allez !)
+Reste connecté, c'est sérieux
+De la une jusqu'au dernier titre
+On t'emmène plus loin, plus vite
+
+[Verse 2]
+Politique, sport, science et culture
+Une vérité qui jamais ne s'use
+Les faits d'abord, pas de couverture
+On vérifie tout avant qu'on diffuse
+
+[Pre-Chorus]
+Ça bouge, ça vibre, t'es au cœur de l'action
+Branche-toi, ouvre grand, c'est l'information
+
+[Chorus]
+ACTU 2025 ! (ouais !)
+Le monde en direct sous tes yeux
+ACTU 2025 ! (allez !)
+Reste connecté, c'est sérieux
+De la une jusqu'au dernier titre
+On t'emmène plus loin, plus vite
+
+[Bridge]
+(Breaking news, breaking news)
+Du nord au sud, d'est en ouest
+Une seule chaîne qui ne s'arrête jamais
+(Breaking news, breaking news)
+L'info en boucle, l'info qui ne ment pas
+
+[Outro]
+ACTU 2025...
+Le monde en direct... reste avec nous
+(Ticking... fade out)
+
+====================================================================
+MOTS-CLÉS (tags)
+====================================================================
+news anthem, breaking news, broadcast, electro-pop, energetic,
+catchy hook, urgent, synth, brass stabs, futuristic, 2025, french
+vocals, male and female vocals, sing-along
+
+====================================================================
+À ÉVITER (negative prompt)
+====================================================================
+no lo-fi, no slow ballad, no acoustic-only, no muddy mix,
+no heavy distortion

@@ -1,0 +1,46 @@
+PROMPT MUSIQUE — THEME "ACTU 2025"
+(à coller dans Suno / Udio / autre générateur de musique IA)
+
+====================================================================
+PROMPT COURT (champ "Style of music")
+====================================================================
+Modern news broadcast theme, energetic electronic, urgent newsroom
+vibe, pulsing synth bass, ticking percussion, breaking-news brass
+stabs, cinematic build-up, 2025 futuristic, clean and professional,
+120 BPM, instrumental.
+
+====================================================================
+PROMPT DÉTAILLÉ (description complète)
+====================================================================
+Une musique d'ouverture (jingle / générique) pour une émission
+d'actualités "ACTU 2025". Ambiance moderne, dynamique et urgente,
+comme un flash info de grande chaîne.
+
+- Genre : électro cinématique / corporate news / trailer
+- Tempo : 110–125 BPM, rythme soutenu mais maîtrisé
+- Instruments : basse synthé pulsée, nappes synthétiques larges,
+  cuivres "breaking news" (brass stabs), percussions électroniques
+  type horloge/ticking, claps nets, riser et impact final
+- Structure :
+    0:00 intro tension (ticking + nappe montante)
+    0:05 entrée de la basse + percussion
+    0:10 montée énergique (build-up)
+    0:15 drop / signature sonore mémorable (logo audio)
+    0:20 résolution / boucle propre
+- Émotion : sérieux, crédible, énergique, tourné vers l'avenir
+- Durée idéale : 20 à 30 secondes (jingle), bouclable
+- Format : instrumental, sans voix, sans paroles
+- Mix : clair, punchy, broadcast-ready, mastering propre
+
+====================================================================
+MOTS-CLÉS (tags)
+====================================================================
+news theme, breaking news, broadcast, newsroom, electronic,
+cinematic, corporate, energetic, urgent, synth, brass stabs,
+trailer, futuristic, 2025, instrumental, intro jingle, loopable
+
+====================================================================
+À ÉVITER (negative prompt)
+====================================================================
+no vocals, no lyrics, no lo-fi, no acoustic guitar, no slow ballad,
+no distortion excessive, no muddy mix

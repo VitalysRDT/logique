@@ -90,8 +90,8 @@ export default function Home() {
   }
 
   // Karaoke (uniquement pour les quiz qui en ont un)
-  if (showKaraoke) {
-    return <KaraokeFullscreen onSkip={() => setShowKaraoke(false)} />;
+  if (showKaraoke && selectedQuiz) {
+    return <KaraokeFullscreen quizType={selectedQuiz} onSkip={() => setShowKaraoke(false)} />;
   }
 
   // === ETAPE 1 : CHOIX DU QUIZ ===
